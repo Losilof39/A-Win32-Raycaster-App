@@ -1,4 +1,6 @@
+#include "main_def.h"
 #include "draw.h"
+
 using namespace std;
 
 const int map_width = 24;
@@ -133,12 +135,12 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 
 	if (hwnd == NULL)
 	{
-		MessageBoxA(NULL, "Failed to create the window", "ERROR", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Failed to create the window", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
 	}
 
 	if (already_running() == true)
 	{
-		MessageBoxA(NULL, "An instance of this window is already running!", "ERROR", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "An instance of this window is already running!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
 		return -1;
 	}
 
@@ -215,8 +217,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 
 		}
 
-		Clear(0x000000);
-
+		// clear screen
 		FillRectangle(0, 0, win_width, win_height / 2, 0x222222);
 		FillRectangle(0, win_height / 2, win_width, win_height / 2, 0x555555);
 
@@ -246,7 +247,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 			bool hit = false;
 			bool side = false;
 
-			// finds towards which direction the ray points to
+			// finds which direction the ray points to
 			if (ray_dirX < 0)
 			{
 				step_X = -1;
@@ -400,9 +401,9 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 				player_posY -= dir_Y * speed * elapsed_time;
 		}
 
-		// copies backbuffer to screen
 		HDC deviceContext = GetDC(hwnd);
 
+		// copies backbuffer to screen
 		StretchDIBits(deviceContext, 0, 0, width, height, 0, 0, width, height, backbuffer, &bitmap, DIB_RGB_COLORS, SRCCOPY);
 
 		ReleaseDC(hwnd, deviceContext);
