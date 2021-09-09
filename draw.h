@@ -2,8 +2,8 @@
 #include <chrono>
 #include <vector>
 
-void* backbuffer;
-BITMAPINFO bitmap;
+// global backbuffer
+game_bitmap gbackbuffer;
 
 void Clear(uint32_t color);
 void Draw(int32_t x, int32_t y, uint32_t color);
@@ -15,7 +15,7 @@ void FillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t
 int rgb_to_hex(uint8_t red, uint8_t green, uint8_t blue);
 
 void Clear(uint32_t color) {
-	uint32_t* pixel = (uint32_t*)backbuffer;
+	uint32_t* pixel = (uint32_t*)gbackbuffer.memory;
 
 	for (int i = 0; i < width * height; i++)
 	{
@@ -24,7 +24,7 @@ void Clear(uint32_t color) {
 }
 
 void Draw(int32_t x, int32_t y, uint32_t color) {
-	uint32_t* pixel = (uint32_t*)backbuffer;
+	uint32_t* pixel = (uint32_t*)gbackbuffer.memory;
 	
 	// clip any pixel outside client window
 	if (y > height - 1 || x > width - 1 || x < 0 || y < 0) {

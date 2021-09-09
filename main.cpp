@@ -1,4 +1,5 @@
 #include "main_def.h"
+#include "engine.h"
 #include "draw.h"
 
 using namespace std;
@@ -41,6 +42,8 @@ typedef struct button_key {
 } button_key;
 
 button_key Key = { 0 };
+
+Engine _Engine;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
@@ -119,59 +122,10 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 	_In_ LPSTR lpCmdLine,
 	_In_ int nShowCmd) {
 
-	// first create a window class
-	WNDCLASS wc = { 0 };
+	_Engine.init(hInstance, WndProc);
 
-	//wc.hIcon = LoadIcon(GetModuleHandle(0), MAKEINTRESOURCE(IDI_MYICON));
-	wc.lpfnWndProc = WndProc;
-	wc.hInstance = hInstance;
-	wc.lpszClassName = L"main_wndclass";
+	/* INIT GAME */
 
-	// second, we register the class we have created
-	RegisterClass(&wc);
-
-	// third, we create a window using the class registered and we show it
-	HWND hwnd = CreateWindowEx(0, wc.lpszClassName, L"QuakeClone", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, 0, 0, win_width, win_height, 0, 0, hInstance, 0);
-
-	if (hwnd == NULL)
-	{
-		MessageBoxA(NULL, "Failed to create the window", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
-	}
-
-	if (already_running() == true)
-	{
-		MessageBoxA(NULL, "An instance of this window is already running!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
-		return -1;
-	}
-
-	RECT rect;
-	GetClientRect(hwnd, &rect);
-	width = rect.right - rect.left;
-	height = rect.bottom - rect.top;
-
-	// allocate backbuffer, this is where all the drawing is going to
-	backbuffer = VirtualAlloc(0, width * height * 4, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-
-	// bitmap setup
-	bitmap.bmiHeader.biSize = sizeof(bitmap.bmiHeader);
-	bitmap.bmiHeader.biWidth = width;						// width of the rectangle!!
-	bitmap.bmiHeader.biHeight = -height;					// height of the rectangle!!
-	bitmap.bmiHeader.biPlanes = 1;
-	bitmap.bmiHeader.biBitCount = 32;
-	bitmap.bmiHeader.biCompression = BI_RGB;
-
-	game_bitmap gm_bmp = { 0 };
-
-	if (load_bmp("C:\\Users\\lmest\\source\\repos\\win32_raycaster\\assets\\red_dotted.bmpx", &gm_bmp) == false)
-	{
-		MessageBoxA(NULL, "Failed to load a bmpx file!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
-		return -1;
-	}
-
-	// Message loop
-	MSG msg;
-
-	// game stuff
 	float player_posX = 5.0f;
 	float player_posY = 5.0f;
 
@@ -196,7 +150,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 		for (int y = 0; y < tile_height; y++)
 		{
 			int xorcolor = (x * 256 / tile_width) ^ (y * 256 / tile_height);
-			//int xcolor = x * 256 / texWidth;
+			int xcolor = x * 256 / tile_width;
 			int ycolor = y * 256 / tile_height;
 			int xycolor = y * 128 / tile_height + x * 128 / tile_width;
 			texture[0][tile_width * y + x] = 65536 * 254 * (x != y && x != tile_width - y); //flat red texture with black cross
@@ -211,6 +165,8 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 
 	while (bRunning) {
 
+		_Engine.msg_loop();
+
 		time_2 = chrono::system_clock::now();
 		chrono::duration<float> elapsed = time_2 - time_1;
 		time_1 = time_2;
@@ -218,12 +174,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 
 		float rotSpeed = 3.0f * elapsed_time;
 
-		while (PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE)) {
-
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);		
-
-		}
+		/* 3D RENDERING */
 
 		// clear screen
 		FillRectangle(0, 0, win_width, win_height / 2, 0x222222);
@@ -353,17 +304,6 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 				if (side == true)
 					color = (color >> 1) & 8355711;
 				Draw(x, y, color);
-
-				/*if (Key.f4 == true)
-				{
-					if (x == width - 1) {
-						Key.f4 = 0;
-					}
-
-					
-
-					StretchDIBits(deviceContext, 0, 0, width, height, 0, 0, width, height, backbuffer, &bitmap, DIB_RGB_COLORS, SRCCOPY);
-				}*/
 			}
 		}
 
@@ -409,17 +349,8 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 				player_posY -= dir_Y * speed * elapsed_time;
 		}
 
-		HDC deviceContext = GetDC(hwnd);
-
-		// copies backbuffer to screen
-		StretchDIBits(deviceContext, 0, 0, width, height, 0, 0, width, height, backbuffer, &bitmap, DIB_RGB_COLORS, SRCCOPY);
-
-		ReleaseDC(hwnd, deviceContext);
+		_Engine.blit_to_DIB();
 	}
-
-	// unload resources
-	VirtualFree(&backbuffer, 0, MEM_RELEASE);
-	DestroyWindow(hwnd);
 
 	return 0;
 }

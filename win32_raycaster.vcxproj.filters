@@ -26,5 +26,8 @@
     <ClInclude Include="main_def.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="engine.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

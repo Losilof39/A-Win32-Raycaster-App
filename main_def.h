@@ -12,6 +12,9 @@
 #define tile_width 64
 #define tile_height 64
 
+#define WIN_WIDTH 640
+#define WIN_HEIGHT 480
+
 static int width;
 static int height;
 BOOL bRunning = TRUE;
