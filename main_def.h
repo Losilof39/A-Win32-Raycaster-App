@@ -16,6 +16,12 @@ static int width;
 static int height;
 BOOL bRunning = TRUE;
 
+typedef struct game_bitmap 
+{
+	void *memory;
+	BITMAPINFO bitmap_info;
+}game_bitmap;
+
 bool already_running(void)
 {
 	HANDLE mutex;
@@ -26,4 +32,20 @@ bool already_running(void)
 		return true;
 	else
 		return false;
+}
+
+bool load_bmp(_In_ const char* file_path, _Inout_ game_bitmap* bitmap_target)
+{
+	HANDLE file_hnd = INVALID_HANDLE_VALUE;
+
+	if((file_hnd = CreateFileA(file_path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+		return -1;
+
+	DWORD num_bytes_read = 2;
+
+	WORD bitmap_header = 0;
+
+	bitmap_target->memory = &bitmap_header;
+
+	return ReadFile(file_hnd, &bitmap_header, num_bytes_read, &num_bytes_read, NULL);
 }

@@ -160,6 +160,14 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 	bitmap.bmiHeader.biBitCount = 32;
 	bitmap.bmiHeader.biCompression = BI_RGB;
 
+	game_bitmap gm_bmp = { 0 };
+
+	if (load_bmp("C:\\Users\\lmest\\source\\repos\\win32_raycaster\\assets\\red_dotted.bmpx", &gm_bmp) == false)
+	{
+		MessageBoxA(NULL, "Failed to load a bmpx file!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
+		return -1;
+	}
+
 	// Message loop
 	MSG msg;
 
