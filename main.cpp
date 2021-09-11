@@ -4,34 +4,6 @@
 
 using namespace std;
 
-// array storing the walls in the map
-const int map[map_width][map_height] = {
-  {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,7,7,7,7,7,7,7,7},
-  {4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,7},
-  {4,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7},
-  {4,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7},
-  {4,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,7},
-  {4,0,4,0,0,0,0,5,5,5,5,5,5,5,5,5,7,7,0,7,7,7,7,7},
-  {4,0,5,0,0,0,0,5,0,5,0,5,0,5,0,5,7,0,0,0,7,7,7,1},
-  {4,0,6,0,0,0,0,5,0,0,0,0,0,0,0,5,7,0,0,0,0,0,0,8},
-  {4,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,7,7,1},
-  {4,0,8,0,0,0,0,5,0,0,0,0,0,0,0,5,7,0,0,0,0,0,0,8},
-  {4,0,0,0,0,0,0,5,0,0,0,0,0,0,0,5,7,0,0,0,7,7,7,1},
-  {4,0,0,0,0,0,0,5,5,5,5,0,5,5,5,5,7,7,7,7,7,7,7,1},
-  {6,6,6,6,6,6,6,6,6,6,6,0,6,6,6,6,6,6,6,6,6,6,6,6},
-  {8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4},
-  {6,6,6,6,6,6,0,6,6,6,6,0,6,6,6,6,6,6,6,6,6,6,6,6},
-  {4,4,4,4,4,4,0,4,4,4,6,0,6,2,2,2,2,2,2,2,3,3,3,3},
-  {4,0,0,0,0,0,0,0,0,4,6,0,6,2,0,0,0,0,0,2,0,0,0,2},
-  {4,0,0,0,0,0,0,0,0,0,0,0,6,2,0,0,5,0,0,2,0,0,0,2},
-  {4,0,0,0,0,0,0,0,0,4,6,0,6,2,0,0,0,0,0,2,2,0,2,2},
-  {4,0,6,0,6,0,0,0,0,4,6,0,0,0,0,0,5,0,0,0,0,0,0,2},
-  {4,0,0,5,0,0,0,0,0,4,6,0,6,2,0,0,0,0,0,2,2,0,2,2},
-  {4,0,6,0,6,0,0,0,0,4,6,0,6,2,0,0,5,0,0,2,0,0,0,2},
-  {4,0,0,0,0,0,0,0,0,4,6,0,6,2,0,0,0,0,0,2,0,0,0,2},
-  {4,4,4,4,4,4,4,4,4,4,1,1,1,2,2,2,2,2,2,3,3,3,3,3}
-};
-
 // this is where the messages received from the OS (Windows) are treated (e.g. clicked the "X" button: message sent by OS -> APP: close the window)
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
@@ -120,17 +92,9 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 		return -1;
 	}
 
-	game_bitmap wall_bmp = { 0 };
+	game_bitmap wolf3d_bmp = { 0 };
 
-	if (load_bmp(".\\assets\\wolf3d_tex_1.bmpx", &wall_bmp) != 0)
-	{
-		MessageBoxA(NULL, "Failed to load a bmpx file!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
-		return -1;
-	}
-
-	game_bitmap hero_bmp = { 0 };
-
-	if (load_bmp(".\\assets\\Hero_Suit0_Down_Standing.bmpx", &hero_bmp) != 0)
+	if (load_bmp(".\\assets\\wolf3d_tex.bmpx", &wolf3d_bmp) != 0)
 	{
 		MessageBoxA(NULL, "Failed to load a bmpx file!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
 		return -1;
@@ -151,27 +115,6 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 
 	auto time_1 = chrono::system_clock::now();
 	auto time_2 = chrono::system_clock::now();
-	uint32_t texture[8][TILE_WIDTH*TILE_HEIGHT];
-
-	for (int x = 0; x < TILE_WIDTH; x++)
-		for (int y = 0; y < TILE_HEIGHT; y++)
-		{
-			int xorcolor = (x * 256 / TILE_WIDTH) ^ (y * 256 / TILE_HEIGHT);
-			int xcolor = x * 256 / TILE_WIDTH;
-			int ycolor = y * 256 / TILE_HEIGHT;
-			int xycolor = y * 128 / TILE_HEIGHT + x * 128 / TILE_WIDTH;
-			texture[0][TILE_WIDTH * y + x] = 65536 * 254 * (x != y && x != TILE_WIDTH - y); //flat red texture with black cross
-			texture[1][TILE_WIDTH * y + x] = xycolor + 256 * xycolor + 65536 * xycolor; //sloped greyscale
-			texture[2][TILE_WIDTH * y + x] = 256 * xycolor + 65536 * xycolor; //sloped yellow gradient
-			//texture[3][TILE_WIDTH * y + x] = xorcolor + 256 * xorcolor + 65536 * xorcolor; //xor greyscale
-			//texture[4][TILE_WIDTH * y + x] = 256 * xorcolor; //xor green
-			texture[5][TILE_WIDTH * y + x] = 65536 * 192 * (x % 16 && y % 16); //red bricks
-			texture[6][TILE_WIDTH * y + x] = 65536 * ycolor; //red gradient
-			texture[7][TILE_WIDTH * y + x] = 128 + 256 * 128 + 65536 * 128; //flat grey texture
-		}
-
-	//LoadAsTexture(&hero_bmp, texture[4]);
-	LoadAsTexture(&wall_bmp, texture[3]);
 
 	while (bRunning) {
 
@@ -280,7 +223,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 				draw_end = WIN_HEIGHT - 1;
 
 			// TODO: understand this stuff
-			int tex_num = map[map_X][map_Y] - 1;
+			int tex_num = map[map_X][map_Y];
 
 			float wall_X;	// where the wall was exactly hit
 
@@ -308,7 +251,55 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 			{
 				int tex_Y = int(tex_pos) & (TILE_HEIGHT - 1);
 				tex_pos += step;
-				uint32_t color = texture[tex_num][TILE_WIDTH * tex_Y + tex_X];
+
+				uint32_t color = 0;
+
+				switch (tex_num)
+				{
+					case 1:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 1, 1, tex_X, tex_Y);
+					}break;
+
+					case 2:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 3, 2, tex_X, tex_Y);
+					}break;
+
+					case 3:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 4, 8, tex_X, tex_Y);
+					}break;
+
+					case 4:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 2, 5, tex_X, tex_Y);
+					}break;
+
+					case 5:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 3, 3, tex_X, tex_Y);
+					}break;
+
+					case 6:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 5, 7, tex_X, tex_Y);
+					}break;
+
+					case 7:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 3, 10, tex_X, tex_Y);
+					}break;
+
+					case 8:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 1, 8, tex_X, tex_Y);
+					}break;
+
+					default:
+						LoadTextureIndex(&color, wolf3d_bmp, 6, 10, tex_X, tex_Y);
+						break;
+				}
 				
 				if (side == true)
 					color = (color >> 1) & 8355711;

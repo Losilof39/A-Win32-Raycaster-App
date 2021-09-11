@@ -2,6 +2,30 @@
 #include <windows.h>
 #include <stdint.h>
 
+// self-exp
+const int map_width = 16;
+const int map_height = 16;
+
+// array storing the walls in the map
+const int map[map_width][map_height] = {
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,4,0,0,0,0,5,5,5,5,5,5,5,5,1},
+  {1,0,5,0,0,0,0,5,0,5,0,5,0,5,0,1},
+  {1,0,6,0,0,0,0,5,0,0,0,0,0,0,0,1},
+  {1,0,7,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,8,0,0,0,0,5,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,5,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,5,5,5,5,0,5,5,5,1},
+  {1,6,6,0,0,6,6,6,6,6,6,0,6,6,6,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,6,6,6,6,6,0,6,6,6,6,0,6,6,6,1},
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+};
+
 // key code
 #define VK_W 0x57
 #define VK_A 0x41
@@ -16,10 +40,6 @@
 #define TILE_HEIGHT 64
 
 #define MAX_TEX 128
-
-// self-exp
-const int map_width = 24;
-const int map_height = 24;
 
 static int client_width;
 static int client_height;
@@ -133,5 +153,14 @@ bool LoadAsTexture(game_bitmap* bitmap, uint32_t* texture)
 		}
 	}
 
+	return true;
+}
+
+bool LoadTextureIndex(uint32_t* color, game_bitmap bitmap, int index_x, int index_y, int tex_x, int tex_y)	//	bitmap.bitmap_info.bmiHeader.biWidth * (1 - TILE_HEIGHT * index_y)
+{
+	int32_t start_bitmap = (bitmap.bitmap_info.bmiHeader.biWidth * bitmap.bitmap_info.bmiHeader.biHeight) - bitmap.bitmap_info.bmiHeader.biWidth - TILE_HEIGHT * (index_y - 1) * bitmap.bitmap_info.bmiHeader.biWidth + (index_x - 1) * 64;
+	int32_t bitmap_offset = start_bitmap + tex_x - tex_y * bitmap.bitmap_info.bmiHeader.biWidth;
+
+	memcpy_s(color, sizeof(uint32_t), (uint32_t*)bitmap.memory + bitmap_offset, sizeof(uint32_t));
 	return true;
 }
