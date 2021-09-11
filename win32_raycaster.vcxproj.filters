@@ -15,18 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="draw.h">
+    <ClInclude Include="src\draw.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="main_def.h">
+    <ClInclude Include="src\engine.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="engine.h">
+    <ClInclude Include="src\main_def.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>
