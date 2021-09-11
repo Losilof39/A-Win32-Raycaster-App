@@ -2,40 +2,62 @@
 #include <chrono>
 #include <vector>
 
+#define SWAP(x,y) do { (x)=(x)^(y); (y)=(x)^(y); (x)=(x)^(y); } while(0)
+
 // global backbuffer
 game_bitmap gbackbuffer;
 
 void Clear(uint32_t color);
-void Draw(int32_t x, int32_t y, uint32_t color);
-void DrawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
-void DrawTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color);
-void FillTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color, bool frag_lerp);
-void DrawRectangle(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color);
-void FillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color);
-int rgb_to_hex(uint8_t red, uint8_t green, uint8_t blue);
+void Blit32BMP(game_bitmap* bitmap, int x, int y);
+void Draw(int x, int y, uint32_t color);
+void DrawLine(int x1, int y1, int x2, int y2, uint32_t color);
+void DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color);
+void FillTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, bool frag_lerp);
+void DrawRectangle(int x, int y, int client_width, int client_height, uint32_t color);
+void FillRectangle(int x, int y, int client_width, int client_height, uint32_t color);
 
 void Clear(uint32_t color) {
 	uint32_t* pixel = (uint32_t*)gbackbuffer.memory;
 
-	for (int i = 0; i < width * height; i++)
+	for (int i = 0; i < client_width * client_height; i++)
 	{
 		*pixel++ = color;
 	}
 }
 
-void Draw(int32_t x, int32_t y, uint32_t color) {
+void Blit32BMP(game_bitmap* bitmap, int x, int y)
+{
+	int32_t bitmap_offset = 0;
+	int32_t bitmap_pixel = 0;
+	int32_t start_bitmap = bitmap->bitmap_info.bmiHeader.biWidth * bitmap->bitmap_info.bmiHeader.biHeight - bitmap->bitmap_info.bmiHeader.biWidth;
+
+	for (int16_t pixel_y = 0; pixel_y < bitmap->bitmap_info.bmiHeader.biHeight; pixel_y++)
+	{
+		for (int16_t pixel_x = 0; pixel_x < bitmap->bitmap_info.bmiHeader.biWidth; pixel_x++)
+		{
+			bitmap_offset = start_bitmap + pixel_x - pixel_y * bitmap->bitmap_info.bmiHeader.biWidth;
+			
+			memcpy_s(&bitmap_pixel, sizeof(uint32_t), (uint32_t*)bitmap->memory + bitmap_offset, sizeof(uint32_t));
+
+			Draw(x + pixel_x, y + pixel_y, bitmap_pixel);
+		}
+	}
+}
+
+void Draw(int x, int y, uint32_t color) {
 	uint32_t* pixel = (uint32_t*)gbackbuffer.memory;
 	
 	// clip any pixel outside client window
-	if (y > height - 1 || x > width - 1 || x < 0 || y < 0) {
+	if (y > client_height - 1 || x > client_width - 1 || x < 0 || y < 0) {
 		// do nothing
 	}
 	else
-		pixel = pixel + y * width + x;
+		pixel = pixel + y * client_width + x;
 		*pixel = color;
 }
 
-void DrawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color) {
+
+void DrawLine(int x0, int y0, int x1, int y1, uint32_t color) {
 
 	//olcOneLoneCoder: https://github.com/OneLoneCoder/videos/blob/master/olcConsoleGameEngine.h
 	int x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
@@ -96,13 +118,13 @@ void DrawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color) {
 	}
 }
 
-void DrawTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color) {
+void DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color) {
 	DrawLine(x0, y0, x1, y1, color);
 	DrawLine(x0, y0, x2, y2, color);
 	DrawLine(x1, y1, x2, y2, color);
 }
 
-void BarcycentricCoord(int32_t px, int32_t py, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, float *w1, float *w2, float *w3) {
+void BarcycentricCoord(int px, int py, int x0, int y0, int x1, int y1, int x2, int y2, float *w1, float *w2, float *w3) {
 
 	float s1 = float(y2 - y0);
 	float s2 = float(x2 - x0);
@@ -114,7 +136,7 @@ void BarcycentricCoord(int32_t px, int32_t py, int32_t x0, int32_t y0, int32_t x
 	*w3 = 1 - *w1 - *w2;
 }
 
-void FillTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color, bool frag_lerp) {
+void FillTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color, bool frag_lerp) {
 
 	//https://www.avrfreaks.net/sites/default/files/triangles.c
 	int32_t t1x, t2x, y, minx, maxx, t1xp, t2xp;
@@ -193,7 +215,7 @@ void FillTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, in
 				float w3;
 				BarcycentricCoord(i, y, x0, y0, x1, y1, x2, y2, &w1, &w2, &w3);
 
-				Draw(i, y, rgb_to_hex(uint8_t(w1 * 255), uint8_t(w2 * 255), uint8_t(w3 * 255)));
+				Draw(i, y, RGB(uint8_t(w1 * 255), uint8_t(w2 * 255), uint8_t(w3 * 255)));
 			}
 		}
 
@@ -263,7 +285,7 @@ next:
 				float w3;
 				BarcycentricCoord(i, y, x0, y0, x1, y1, x2, y2, &w1, &w2, &w3);
 
-				Draw(i, y, rgb_to_hex(uint8_t(w1 * 255), uint8_t(w2 * 255), uint8_t(w3 * 255)));
+				Draw(i, y, RGB(uint8_t(w1 * 255), uint8_t(w2 * 255), uint8_t(w3 * 255)));
 			}
 		}
 
@@ -278,27 +300,23 @@ next:
 
 }
 
-void DrawRectangle(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color) {
-	DrawLine(x, y, x + width, y, color);
-	DrawLine(x + width, y, x + width, y + height, color);
-	DrawLine(x + width, y + height, x, y + height, color);
-	DrawLine(x, y + height, x, y, color);
+void DrawRectangle(int x, int y, int client_width, int client_height, uint32_t color) {
+	DrawLine(x, y, x + client_width, y, color);
+	DrawLine(x + client_width, y, x + client_width, y + client_height, color);
+	DrawLine(x + client_width, y + client_height, x, y + client_height, color);
+	DrawLine(x, y + client_height, x, y, color);
 
 
 }
 
-void FillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, uint32_t color) {
+void FillRectangle(int x, int y, int client_width, int client_height, uint32_t color) {
 
-	for (int j = y; j < y + height; j++) {
+	for (int j = y; j < y + client_height; j++) {
 
-		for (int i = x; i < x + width; i++) {
+		for (int i = x; i < x + client_width; i++) {
 		
 			Draw(i, j, color);
 		
 		}
 	}
-}
-
-int rgb_to_hex(uint8_t red, uint8_t green, uint8_t blue) {
-	return ((red & 0xff) << 16) + ((green & 0xff) << 8) + (blue & 0xff);
 }

@@ -14,7 +14,12 @@ public:
 		DestroyWindow(m_hwnd);
 	}
 
-	bool init(HINSTANCE hInstance, LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam))
+	HWND get_hwnd()
+	{
+		return m_hwnd;
+	}
+
+	int Init(HINSTANCE hInstance, LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam))
 	{
 		// first create a window class
 		WNDCLASS wc = { 0 };
@@ -27,11 +32,12 @@ public:
 		RegisterClass(&wc);
 
 		// third, we create a window using the class registered and we show it
-		m_hwnd = CreateWindowEx(0, wc.lpszClassName, L"QuakeClone", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, 0, 0, 640, 480, 0, 0, hInstance, 0);
+		m_hwnd = CreateWindowEx(0, wc.lpszClassName, L"QuakeClone", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, 0, 0, WIN_WIDTH, WIN_HEIGHT, 0, 0, hInstance, 0);
 
 		if (m_hwnd == NULL)
 		{
 			MessageBoxA(NULL, "Failed to create the window", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
+			return -1;
 		}
 
 		if (already_running() == true)
@@ -42,27 +48,21 @@ public:
 
 		RECT rect;
 		GetClientRect(get_hwnd(), &rect);
-		width = rect.right - rect.left;
-		height = rect.bottom - rect.top;
+		client_width = rect.right - rect.left;
+		client_height = rect.bottom - rect.top;
 
 		// allocate backbuffer, this is where all the drawing is going to
-		gbackbuffer.memory = VirtualAlloc(0, width * height * 4, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+		gbackbuffer.memory = VirtualAlloc(0, client_width * client_height * 4, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
 		// bitmap setup
 		gbackbuffer.bitmap_info.bmiHeader.biSize = sizeof(gbackbuffer.bitmap_info.bmiHeader);
-		gbackbuffer.bitmap_info.bmiHeader.biWidth = width;		// width of the rectangle!!
-		gbackbuffer.bitmap_info.bmiHeader.biHeight = -height;	// height of the rectangle!!
+		gbackbuffer.bitmap_info.bmiHeader.biWidth = client_width;		// width of the rectangle!!
+		gbackbuffer.bitmap_info.bmiHeader.biHeight = -client_height;	// height of the rectangle!!
 		gbackbuffer.bitmap_info.bmiHeader.biPlanes = 1;
 		gbackbuffer.bitmap_info.bmiHeader.biBitCount = 32;
 		gbackbuffer.bitmap_info.bmiHeader.biCompression = BI_RGB;
 
-		game_bitmap gm_bmp = { 0 };
-
-		if (load_bmp("C:\\Users\\lmest\\source\\repos\\win32_raycaster\\assets\\red_dotted.bmpx", &gm_bmp) == false)
-		{
-			MessageBoxA(NULL, "Failed to load a bmpx file!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
-			return -1;
-		}
+		return 0;
 	}
 
 	//void get_input();
@@ -84,14 +84,9 @@ public:
 		HDC deviceContext = GetDC(m_hwnd);
 
 		// copies backbuffer to screen
-		StretchDIBits(deviceContext, 0, 0, width, height, 0, 0, width, height, gbackbuffer.memory, &gbackbuffer.bitmap_info, DIB_RGB_COLORS, SRCCOPY);
+		StretchDIBits(deviceContext, 0, 0, client_width, client_height, 0, 0, client_width, client_height, gbackbuffer.memory, &gbackbuffer.bitmap_info, DIB_RGB_COLORS, SRCCOPY);
 
 		ReleaseDC(m_hwnd, deviceContext);
-	}
-
-	HWND get_hwnd()
-	{
-		return m_hwnd;
 	}
 
 private:
