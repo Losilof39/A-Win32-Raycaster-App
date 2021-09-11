@@ -46,13 +46,6 @@ static int client_height;
 
 BOOL bRunning = TRUE;
 
-// struct keeping track if these keys are pressed and for solving input stuttering/jerking
-typedef struct button_key {
-	bool w, a, s, d, f4 = false;
-} button_key;
-
-button_key Key = { 0 };
-
 // struct where store the bitmap from our "assets" folder
 typedef struct game_bitmap 
 {

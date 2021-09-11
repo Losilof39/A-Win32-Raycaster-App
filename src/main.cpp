@@ -15,61 +15,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			PostQuitMessage(0);
 		} break;
 
-		case WM_KEYDOWN: {
-
-			switch (wParam) {
-
-			case VK_ESCAPE: {
-				bRunning = FALSE;
-			} break;
-
-			case VK_W: {
-				Key.w = 1;
-			} break;
-
-			case VK_A: {
-				Key.a = 1;
-			} break;
-
-			case VK_S: {
-				Key.s = 1;
-			} break;
-
-			case VK_D: {
-				Key.d = 1;
-			} break;
-
-			case VK_F4:
-			{
-				Key.f4 ^= 1; // when pressing f4, makes the screen draw the walls pixel by pixel
-			}break;
-
-			}
-		} break;
-
-		case WM_KEYUP: {
-
-			switch (wParam) {
-
-			case VK_W: {
-				Key.w = 0;
-			} break;
-
-			case VK_A: {
-				Key.a = 0;
-			} break;
-
-			case VK_S: {
-				Key.s = 0;
-			} break;
-
-			case VK_D: {
-				Key.d = 0;
-			} break;
-
-			}
-		}break;
-			
 		default:
 			// any messages we did not treat? pass them to a default function
 			return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -118,8 +63,10 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 
 	while (bRunning) {
 
-		_Engine.msg_loop();
+		if (GetAsyncKeyState(VK_ESCAPE) < 0)
+			bRunning = FALSE;
 
+		_Engine.msg_loop();
 		
 		time_2 = chrono::system_clock::now();
 		chrono::duration<float> elapsed = time_2 - time_1;
@@ -307,7 +254,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 
-		if (Key.d == true)
+		if (GetAsyncKeyState(VK_D) < 0)
 		{
 			// rotate the view direction and plane
 			float oldDirX = dir_X;
@@ -318,7 +265,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 			plane_Y = oldPlaneX * sinf(-rotSpeed) + plane_Y * cosf(-rotSpeed);
 		}
 
-		if (Key.a == true)
+		if (GetAsyncKeyState(VK_A) < 0)
 		{
 			// god I love math
 			float oldDirX = dir_X;
@@ -329,7 +276,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 			plane_Y = oldPlaneX * sinf(rotSpeed) + plane_Y * cosf(rotSpeed);
 		}
 
-		if (Key.w == true)
+		if (GetAsyncKeyState(VK_W) < 0)
 		{
 			// check ahead of player if there's a wall, if not move
 			if(map[int(player_posX + dir_X)][int(player_posY)] == false)
@@ -339,7 +286,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 				player_posY += dir_Y * speed * elapsed_time;
 		}
 
-		if (Key.s == true)
+		if (GetAsyncKeyState(VK_S) < 0)
 		{
 			// check behind the player if there's a wall, if not move
 			if (map[int(player_posX - dir_X)][int(player_posY)] == false)
