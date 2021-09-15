@@ -63,7 +63,7 @@ typedef struct sprite_t
 }sprite_t;
 
 sprite_t sprites[MAX_SPRITES] = {
-	{4, 5},
+	{5.0f, 6.0f},
 };
 
 float z_buffer[WIN_WIDTH];
@@ -205,9 +205,4 @@ int LoadTextureIndex(uint32_t* color, game_bitmap bitmap, int index_x, int index
 	// copy the color from the address of the bitmap to the variable
 	memcpy_s(color, sizeof(uint32_t), (uint32_t*)bitmap.memory + bitmap_offset, sizeof(uint32_t));
 	return true;
-}
-
-int DrawSprite(game_bitmap* bitmap, int x, int y, int scale)
-{
-
 }

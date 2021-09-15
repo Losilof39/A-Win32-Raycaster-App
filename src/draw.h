@@ -25,17 +25,29 @@ void Clear(uint32_t color) {
 	}
 }
 
-void Blit32BMP(game_bitmap* bitmap, int x, int y)
+void Draw(int x, int y, uint32_t color) {
+	uint32_t* pixel = (uint32_t*)gbackbuffer.memory;
+
+	// clip any pixel outside client window
+	if (y > client_height - 1 || x > client_width - 1 || x < 0 || y < 0) {
+		// do nothing
+	}
+	else
+		pixel = pixel + y * client_width + x;
+	*pixel = color;
+}
+
+void Blit32BMP(game_bitmap* bitmap, int x, int y, float scale)
 {
 	int32_t bitmap_offset = 0;
 	int32_t bitmap_pixel = 0;
 	int32_t start_bitmap = bitmap->bitmap_info.bmiHeader.biWidth * bitmap->bitmap_info.bmiHeader.biHeight - bitmap->bitmap_info.bmiHeader.biWidth;
 
-	for (int16_t pixel_y = 0; pixel_y < bitmap->bitmap_info.bmiHeader.biHeight; pixel_y++)
+	for (int16_t pixel_y = 0; pixel_y < bitmap->bitmap_info.bmiHeader.biHeight * scale; pixel_y++)
 	{
-		for (int16_t pixel_x = 0; pixel_x < bitmap->bitmap_info.bmiHeader.biWidth; pixel_x++)
+		for (int16_t pixel_x = 0; pixel_x < bitmap->bitmap_info.bmiHeader.biWidth * scale; pixel_x++)
 		{
-			bitmap_offset = start_bitmap + pixel_x - pixel_y * bitmap->bitmap_info.bmiHeader.biWidth;
+			bitmap_offset = start_bitmap + int((float)pixel_x / scale) - int((float)pixel_y / scale) * bitmap->bitmap_info.bmiHeader.biWidth;
 			
 			memcpy_s(&bitmap_pixel, sizeof(uint32_t), (uint32_t*)bitmap->memory + bitmap_offset, sizeof(uint32_t));
 
@@ -44,18 +56,32 @@ void Blit32BMP(game_bitmap* bitmap, int x, int y)
 	}
 }
 
-void Draw(int x, int y, uint32_t color) {
-	uint32_t* pixel = (uint32_t*)gbackbuffer.memory;
-	
-	// clip any pixel outside client window
-	if (y > client_height - 1 || x > client_width - 1 || x < 0 || y < 0) {
-		// do nothing
-	}
-	else
-		pixel = pixel + y * client_width + x;
-		*pixel = color;
-}
+void DrawSprite(game_bitmap* bitmap, int x, int y, double distance, float scale)
+{
+	int32_t bitmap_offset = 0;
+	int32_t color = 0;
+	int32_t start_bitmap = bitmap->bitmap_info.bmiHeader.biWidth * bitmap->bitmap_info.bmiHeader.biHeight - bitmap->bitmap_info.bmiHeader.biWidth;
 
+	for (int pixel_x = 0; pixel_x < bitmap->bitmap_info.bmiHeader.biWidth * scale; pixel_x++)
+	{		
+		if (distance > 0.0 && x + pixel_x > 0 && x < WIN_WIDTH && distance < z_buffer[x + pixel_x] && y > 0)
+		{
+			for (int pixel_y = 0; pixel_y < bitmap->bitmap_info.bmiHeader.biHeight * scale; pixel_y++)
+			{
+
+				bitmap_offset = start_bitmap + int((float)pixel_x / scale) - int((float)pixel_y / scale) * bitmap->bitmap_info.bmiHeader.biWidth;
+
+				memcpy_s(&color, sizeof(uint32_t), (uint32_t*)bitmap->memory + bitmap_offset, sizeof(uint32_t));
+
+				if (color != -6815608)	// this color would be cyan, used for transparency
+				{
+					Draw(x + pixel_x, y + pixel_y, color);
+				}
+			}
+		}
+
+	}
+}
 
 void DrawLine(int x0, int y0, int x1, int y1, uint32_t color) {
 

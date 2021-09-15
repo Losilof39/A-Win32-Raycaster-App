@@ -53,6 +53,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		return -1;
 	}
 
+	game_bitmap lamp_bmp = { 0 };
+
+	if (load_bmp(".\\assets\\knight.bmpx", &lamp_bmp) != 0)
+	{
+		MessageBoxA(NULL, "Failed to load a bmpx file!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
+		return -1;
+	}
+
 	/* INIT GAME */
 
 	float player_posX = 5.0f;
@@ -303,35 +311,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 			//calculate width of the sprite
 			int spriteWidth = abs(int(WIN_HEIGHT / (transformY)));
 			int drawStartX = -spriteWidth / 2 + spriteScreenX;
-			if (drawStartX < 0) drawStartX = 0;
+			//if (drawStartX < 0) drawStartX = 0;
 			int drawEndX = spriteWidth / 2 + spriteScreenX;
 			if (drawEndX >= WIN_WIDTH) drawEndX = WIN_WIDTH - 1;
 
-			/*if (transformY > 0 && drawStartX > 0 && drawStartX < WIN_WIDTH && transformY < z_buffer[drawStartX])
-			Blit32BMP(&barrel_bmp, drawStartX, drawStartY);*/
-
-			//loop through every vertical stripe of the sprite on screen
-			for (int stripe = drawStartX; stripe < drawEndX; stripe++)
-			{
-				int texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * TILE_WIDTH / spriteWidth) / 256;
-				//the conditions in the if are:
-				//1) it's in front of camera plane so you don't see things behind you
-				//2) it's on the screen (left)
-				//3) it's on the screen (right)
-				//4) ZBuffer, with perpendicular distance
-				if (transformY > 0 && stripe > 0 && stripe < WIN_WIDTH && transformY < z_buffer[stripe])
-					for (int y = drawStartY; y < drawEndY; y++) //for every pixel of the current stripe
-					{
-						int d = (y) * 256 - TILE_HEIGHT * 128 + spriteHeight * 128; //256 and 128 factors to avoid floats
-						int texY = ((d * TILE_HEIGHT) / spriteHeight) / 256;
-
-						uint32_t color = 0;
-
-						LoadTextureIndex(&color, wolf3d_bmp, 5, 5, texX, texY);
-
-						Draw(stripe, y, color);
-					}
-			}
+			float scale = 1.0f * spriteHeight / (float)TILE_HEIGHT;
+			
+			DrawSprite(&lamp_bmp, drawStartX, drawStartY, transformY, scale);			
 		}
 
 		/* HANDLING INPUT */

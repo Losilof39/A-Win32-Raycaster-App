@@ -61,8 +61,7 @@ public:
 		gbackbuffer.bitmap_info.bmiHeader.biCompression = BI_RGB;
 
 		// allocate backbuffer, this is where all the drawing is going to
-		gbackbuffer.memory = VirtualAlloc(0, client_width * client_height * 4, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-
+		gbackbuffer.memory = VirtualAlloc(0, size_t(client_width * client_height * 4), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
 		return 0;
 	}
