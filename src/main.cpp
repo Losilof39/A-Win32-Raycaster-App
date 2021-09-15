@@ -23,7 +23,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	return 0;
 }
 
-int __stdcall WinMain(_In_ HINSTANCE hInstance,
+int WINAPI WinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPSTR lpCmdLine,
 	_In_ int nShowCmd) {
@@ -40,6 +40,14 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 	game_bitmap wolf3d_bmp = { 0 };
 
 	if (load_bmp(".\\assets\\wolf3d_tex.bmpx", &wolf3d_bmp) != 0)
+	{
+		MessageBoxA(NULL, "Failed to load a bmpx file!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
+		return -1;
+	}
+
+	game_bitmap barrel_bmp = { 0 };
+
+	if (load_bmp(".\\assets\\barrel.bmpx", &barrel_bmp) != 0)
 	{
 		MessageBoxA(NULL, "Failed to load a bmpx file!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
 		return -1;
@@ -78,6 +86,9 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 		// clear screen
 		FillRectangle(0, 0, WIN_WIDTH, WIN_HEIGHT / 2, 0x222222);
 		FillRectangle(0, WIN_HEIGHT / 2, WIN_WIDTH, WIN_HEIGHT / 2, 0x555555);
+
+
+		/* 2.5D RENDERING FROM HERE */
 
 		// for every ray casted, do this until we have crossed all the width of the screen
 		for(int x = 0; x < WIN_WIDTH; x++)
@@ -240,7 +251,7 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 
 					case 8:
 					{
-						LoadTextureIndex(&color, wolf3d_bmp, 1, 8, tex_X, tex_Y);
+						LoadTextureIndex(&color, wolf3d_bmp, 5, 8, tex_X, tex_Y);
 					}break;
 
 					default:
@@ -252,8 +263,78 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance,
 					color = (color >> 1) & 8355711;
 				Draw(x, y, color);
 			}
+			z_buffer[x] = perp_wallDist;
 		}
 
+		for (int i = 0; i < MAX_SPRITES; i++)
+		{
+			sprite_order[i] = i;
+			sprite_distance[i] = (player_posX - sprites[i].x) * (player_posX - sprites[i].x) + (player_posY - sprites[i].y) * (player_posY - sprites[i].y);
+		}
+
+		sort_sprites(sprite_order, sprite_distance, MAX_SPRITES);
+
+		for (int i = 0; i < MAX_SPRITES; i++)
+		{
+			//translate sprite position to relative to camera
+			double spriteX = sprites[sprite_order[i]].x - player_posX;
+			double spriteY = sprites[sprite_order[i]].y - player_posY;
+
+			//transform sprite with the inverse camera matrix
+			// [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+			// [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
+			// [ planeY   dirY ]                                          [ -planeY  planeX ]
+
+			double invDet = 1.0 / (plane_X * dir_Y - dir_X * plane_Y); //required for correct matrix multiplication
+
+			double transformX = invDet * (dir_Y * spriteX - dir_X * spriteY);
+			double transformY = invDet * (-plane_Y * spriteX + plane_X * spriteY); //this is actually the depth inside the screen, that what Z is in 3D
+
+			int spriteScreenX = int((WIN_WIDTH / 2) * (1 + transformX / transformY));
+
+			//calculate height of the sprite on screen
+			int spriteHeight = abs(int(WIN_HEIGHT / (transformY))); //using 'transformY' instead of the real distance prevents fisheye
+			//calculate lowest and highest pixel to fill in current stripe
+			int drawStartY = -spriteHeight / 2 + WIN_HEIGHT / 2;
+			if (drawStartY < 0) drawStartY = 0;
+			int drawEndY = spriteHeight / 2 + WIN_HEIGHT / 2;
+			if (drawEndY >= WIN_HEIGHT) drawEndY = WIN_HEIGHT - 1;
+
+			//calculate width of the sprite
+			int spriteWidth = abs(int(WIN_HEIGHT / (transformY)));
+			int drawStartX = -spriteWidth / 2 + spriteScreenX;
+			if (drawStartX < 0) drawStartX = 0;
+			int drawEndX = spriteWidth / 2 + spriteScreenX;
+			if (drawEndX >= WIN_WIDTH) drawEndX = WIN_WIDTH - 1;
+
+			/*if (transformY > 0 && drawStartX > 0 && drawStartX < WIN_WIDTH && transformY < z_buffer[drawStartX])
+			Blit32BMP(&barrel_bmp, drawStartX, drawStartY);*/
+
+			//loop through every vertical stripe of the sprite on screen
+			for (int stripe = drawStartX; stripe < drawEndX; stripe++)
+			{
+				int texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * TILE_WIDTH / spriteWidth) / 256;
+				//the conditions in the if are:
+				//1) it's in front of camera plane so you don't see things behind you
+				//2) it's on the screen (left)
+				//3) it's on the screen (right)
+				//4) ZBuffer, with perpendicular distance
+				if (transformY > 0 && stripe > 0 && stripe < WIN_WIDTH && transformY < z_buffer[stripe])
+					for (int y = drawStartY; y < drawEndY; y++) //for every pixel of the current stripe
+					{
+						int d = (y) * 256 - TILE_HEIGHT * 128 + spriteHeight * 128; //256 and 128 factors to avoid floats
+						int texY = ((d * TILE_HEIGHT) / spriteHeight) / 256;
+
+						uint32_t color = 0;
+
+						LoadTextureIndex(&color, wolf3d_bmp, 5, 5, texX, texY);
+
+						Draw(stripe, y, color);
+					}
+			}
+		}
+
+		/* HANDLING INPUT */
 		if (GetAsyncKeyState(VK_D) < 0)
 		{
 			// rotate the view direction and plane

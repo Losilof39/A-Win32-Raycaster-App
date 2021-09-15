@@ -32,7 +32,8 @@ public:
 		RegisterClass(&wc);
 
 		// third, we create a window using the class registered and we show it
-		m_hwnd = CreateWindowEx(0, wc.lpszClassName, L"QuakeClone", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, 0, 0, WIN_WIDTH, WIN_HEIGHT, 0, 0, hInstance, 0);
+		m_hwnd = CreateWindowEx(0, wc.lpszClassName, L"Win32 Raycaster", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, 0, 0, WIN_WIDTH, WIN_HEIGHT, 0, 0, hInstance, 0);
+
 
 		if (m_hwnd == NULL)
 		{
@@ -50,10 +51,7 @@ public:
 		GetClientRect(get_hwnd(), &rect);
 		client_width = rect.right - rect.left;
 		client_height = rect.bottom - rect.top;
-
-		// allocate backbuffer, this is where all the drawing is going to
-		gbackbuffer.memory = VirtualAlloc(0, client_width * client_height * 4, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-
+		
 		// bitmap setup
 		gbackbuffer.bitmap_info.bmiHeader.biSize = sizeof(gbackbuffer.bitmap_info.bmiHeader);
 		gbackbuffer.bitmap_info.bmiHeader.biWidth = client_width;		// width of the rectangle!!
@@ -61,6 +59,10 @@ public:
 		gbackbuffer.bitmap_info.bmiHeader.biPlanes = 1;
 		gbackbuffer.bitmap_info.bmiHeader.biBitCount = 32;
 		gbackbuffer.bitmap_info.bmiHeader.biCompression = BI_RGB;
+
+		// allocate backbuffer, this is where all the drawing is going to
+		gbackbuffer.memory = VirtualAlloc(0, client_width * client_height * 4, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+
 
 		return 0;
 	}

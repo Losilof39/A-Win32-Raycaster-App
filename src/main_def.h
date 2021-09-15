@@ -1,6 +1,8 @@
 #pragma once
 #include <windows.h>
 #include <stdint.h>
+#include <algorithm>
+#include <vector>
 
 // self-exp
 const int map_width = 16;
@@ -40,18 +42,50 @@ const int map[map_width][map_height] = {
 #define TILE_HEIGHT 64
 
 #define MAX_TEX 128
+#define MAX_SPRITES 1
 
 static int client_width;
 static int client_height;
 
 BOOL bRunning = TRUE;
 
-// struct where store the bitmap from our "assets" folder
+// struct where we store the bitmap from our "assets" folder
 typedef struct game_bitmap 
 {
 	void *memory;
 	BITMAPINFO bitmap_info;
 }game_bitmap;
+
+/* SPRITE STUFF */
+typedef struct sprite_t
+{
+	float x, y;
+}sprite_t;
+
+sprite_t sprites[MAX_SPRITES] = {
+	{4, 5},
+};
+
+float z_buffer[WIN_WIDTH];
+
+int sprite_order[MAX_SPRITES];
+double sprite_distance[MAX_SPRITES];
+
+// TODO: understand this function deeply on how it works
+void sort_sprites(int* order, double* dist, int amount)
+{
+	std::vector<std::pair<double, int>> sprites(amount);
+	for (int i = 0; i < amount; i++) {
+		sprites[i].first = dist[i];
+		sprites[i].second = order[i];
+	}
+	std::sort(sprites.begin(), sprites.end());
+	// restore in reverse order to go from farthest to nearest
+	for (int i = 0; i < amount; i++) {
+		dist[i] = sprites[amount - i - 1].first;
+		order[i] = sprites[amount - i - 1].second;
+	}
+}
 
 // if the game is running and click the second time
 // the game executable, it will close the second window
@@ -153,15 +187,27 @@ bool LoadAsTexture(game_bitmap* bitmap, uint32_t* texture)
 	return true;
 }
 
-bool LoadTextureIndex(uint32_t* color, game_bitmap bitmap, int index_x, int index_y, int tex_x, int tex_y)	//	bitmap.bitmap_info.bmiHeader.biWidth * (1 - TILE_HEIGHT * index_y) <- why i can't do this way :(
+int LoadTextureIndex(uint32_t* color, game_bitmap bitmap, int index_x, int index_y, int tex_x, int tex_y)	//	bitmap.bitmap_info.bmiHeader.biWidth * (1 - TILE_HEIGHT * index_y) <- why i can't do this way :(
 {
+
 	// position relative to the address of the memory holding the bitmap
-	int32_t start_bitmap = (bitmap.bitmap_info.bmiHeader.biWidth * bitmap.bitmap_info.bmiHeader.biHeight) - bitmap.bitmap_info.bmiHeader.biWidth - TILE_HEIGHT * (index_y - 1) * bitmap.bitmap_info.bmiHeader.biWidth + (index_x - 1) * TILE_HEIGHT;
+	uint32_t start_bitmap = (bitmap.bitmap_info.bmiHeader.biWidth * bitmap.bitmap_info.bmiHeader.biHeight) - bitmap.bitmap_info.bmiHeader.biWidth - TILE_HEIGHT * (index_y - 1) * bitmap.bitmap_info.bmiHeader.biWidth + (index_x - 1) * TILE_HEIGHT;
 	
+	if (start_bitmap > bitmap.bitmap_info.bmiHeader.biSizeImage || start_bitmap < 0)
+	{
+		MessageBoxA(NULL, "Invalid index!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
+		return -1;
+	}
+
 	// position relative to the texture we chose
 	int32_t bitmap_offset = start_bitmap + tex_x - tex_y * bitmap.bitmap_info.bmiHeader.biWidth;
 
 	// copy the color from the address of the bitmap to the variable
 	memcpy_s(color, sizeof(uint32_t), (uint32_t*)bitmap.memory + bitmap_offset, sizeof(uint32_t));
 	return true;
+}
+
+int DrawSprite(game_bitmap* bitmap, int x, int y, int scale)
+{
+
 }
