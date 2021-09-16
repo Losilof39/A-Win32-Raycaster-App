@@ -64,7 +64,10 @@ void DrawSprite(game_bitmap* bitmap, int x, int y, double distance, float scale)
 
 	for (int pixel_x = 0; pixel_x < bitmap->bitmap_info.bmiHeader.biWidth * scale; pixel_x++)
 	{		
-		if (distance > 0.0 && x + pixel_x > 0 && x < WIN_WIDTH && distance < z_buffer[x + pixel_x] && y > 0)
+		int wich_dist = x + pixel_x;
+		if (wich_dist > WIN_WIDTH) wich_dist = WIN_WIDTH;
+
+		if (distance > 0.0 && x + pixel_x > 0 && x < WIN_WIDTH && distance < z_buffer[wich_dist] && y > 0)
 		{
 			for (int pixel_y = 0; pixel_y < bitmap->bitmap_info.bmiHeader.biHeight * scale; pixel_y++)
 			{

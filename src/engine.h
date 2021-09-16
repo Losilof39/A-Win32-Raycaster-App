@@ -51,6 +51,8 @@ public:
 		GetClientRect(get_hwnd(), &rect);
 		client_width = rect.right - rect.left;
 		client_height = rect.bottom - rect.top;
+
+		ShowCursor(FALSE);
 		
 		// bitmap setup
 		gbackbuffer.bitmap_info.bmiHeader.biSize = sizeof(gbackbuffer.bitmap_info.bmiHeader);

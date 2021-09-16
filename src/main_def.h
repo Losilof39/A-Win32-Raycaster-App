@@ -57,13 +57,18 @@ typedef struct game_bitmap
 }game_bitmap;
 
 /* SPRITE STUFF */
-typedef struct sprite_t
+typedef struct entity_t
 {
 	float x, y;
-}sprite_t;
+	float block_dist = 1.0f;	// distance between sprite and entity for when they collide
+	float speed = 1.0f;
+}entity_t;
 
-sprite_t sprites[MAX_SPRITES] = {
-	{5.0f, 6.0f},
+entity_t entities[MAX_SPRITES] = {
+	{5.0f, 6.0f},/*
+	{4.0f, 6.0f},
+	{3.0f, 6.0f},
+	{2.0f, 6.0f}*/
 };
 
 float z_buffer[WIN_WIDTH];

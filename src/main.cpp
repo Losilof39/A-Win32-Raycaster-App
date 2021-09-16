@@ -277,7 +277,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		for (int i = 0; i < MAX_SPRITES; i++)
 		{
 			sprite_order[i] = i;
-			sprite_distance[i] = (player_posX - sprites[i].x) * (player_posX - sprites[i].x) + (player_posY - sprites[i].y) * (player_posY - sprites[i].y);
+			sprite_distance[i] = (player_posX - entities[i].x) * (player_posX - entities[i].x) + (player_posY - entities[i].y) * (player_posY - entities[i].y);
 		}
 
 		sort_sprites(sprite_order, sprite_distance, MAX_SPRITES);
@@ -285,8 +285,17 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		for (int i = 0; i < MAX_SPRITES; i++)
 		{
 			//translate sprite position to relative to camera
-			double spriteX = sprites[sprite_order[i]].x - player_posX;
-			double spriteY = sprites[sprite_order[i]].y - player_posY;
+			double spriteX = entities[sprite_order[i]].x - player_posX;
+			double spriteY = entities[sprite_order[i]].y - player_posY;
+
+			double dist = sqrt((spriteX) * (spriteX)+(spriteY) * (spriteY));
+
+			// follow player
+			if (dist > 2.0 && map[(int)entities[sprite_order[i]].x][(int)entities[sprite_order[i]].y] == 0)
+			{
+				entities[sprite_order[i]].x -= (spriteX / dist) * entities[sprite_order[i]].speed * elapsed_time;
+				entities[sprite_order[i]].y -= (spriteY / dist) * entities[sprite_order[i]].speed * elapsed_time;
+			}
 
 			//transform sprite with the inverse camera matrix
 			// [ planeX   dirX ] -1                                       [ dirY      -dirX ]
