@@ -77,7 +77,7 @@ enum ai_state_t {
 ai_state_t AI_STATE = IDLE;
 
 entity_t entities[MAX_SPRITES] = {
-	{5.0f, 6.0f},/*
+	{5.0f, 6.0f}/*
 	{4.0f, 6.0f},
 	{3.0f, 6.0f},
 	{2.0f, 6.0f}*/
@@ -119,7 +119,7 @@ bool already_running(void)
 }
 
 // loads a .bmpx file on memory
-int load_bmp(_In_ const char* file_path, _Inout_ game_bitmap* bitmap_target)
+int LoadBMP_FromDisk(_In_ const char* file_path, _Inout_ game_bitmap* bitmap_target)
 {
 	HANDLE file_hnd = INVALID_HANDLE_VALUE;
 
@@ -185,7 +185,7 @@ int load_bmp(_In_ const char* file_path, _Inout_ game_bitmap* bitmap_target)
 }
 
 // loads bitmap data into a buffer
-bool LoadAsTexture(game_bitmap* bitmap, uint32_t* texture)
+bool LoadTex_ToBuff(game_bitmap* bitmap, uint32_t* texture)
 {
 	int32_t bitmap_offset = 0;
 	int32_t bitmap_pixel = 0;

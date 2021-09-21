@@ -39,15 +39,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 
 	game_bitmap wolf3d_bmp = { 0 };
 
-	if (load_bmp(".\\assets\\wolf3d_tex.bmpx", &wolf3d_bmp) != 0)
+	if (LoadBMP_FromDisk(".\\assets\\wolf3d_tex.bmpx", &wolf3d_bmp) != 0)
 	{
 		MessageBoxA(NULL, "Failed to load a bmpx file!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
 		return -1;
 	}
 
-	game_bitmap lamp_bmp = { 0 };
+	game_bitmap knight_bmp = { 0 };
 
-	if (load_bmp(".\\assets\\knight.bmpx", &lamp_bmp) != 0)
+	if (LoadBMP_FromDisk(".\\assets\\knight.bmpx", &knight_bmp) != 0)
 	{
 		MessageBoxA(NULL, "Failed to load a bmpx file!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
 		return -1;
@@ -68,8 +68,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 	float plane_X = 0.0f;
 	float plane_Y = 0.66f;
 
-	auto time_1 = chrono::system_clock::now();
-	auto time_2 = chrono::system_clock::now();
+	auto old_time = chrono::system_clock::now();
+	auto new_time = chrono::system_clock::now();
 
 	while (bRunning) {
 
@@ -80,12 +80,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		
 		// we keep track how much time has gone by between frames
 		// so that we know how much we have moved when the scene is rendered
-		time_2 = chrono::system_clock::now();
-		chrono::duration<float> elapsed = time_2 - time_1;
-		time_1 = time_2;
+		new_time = chrono::system_clock::now();
+		chrono::duration<float> elapsed = new_time - old_time;
+		old_time = new_time;
 		float elapsed_time = elapsed.count();
 
-		float rotSpeed = 3.0f * elapsed_time;
+		float rot_speed = 3.0f * elapsed_time;
 
 		// clear screen
 		FillRectangle(0, 0, WIN_WIDTH, WIN_HEIGHT / 2, 0x222222);
@@ -341,7 +341,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 
 			float scale = 1.0f * sprite_height / (float)TILE_HEIGHT;
 			
-			DrawSprite(&lamp_bmp, start_x, start_y, transform_y, scale);			
+			DrawSprite(&knight_bmp, start_x, start_y, transform_y, scale);			
 		}
 
 		////////////////////
@@ -352,22 +352,22 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		{
 			// rotate the view direction and plane
 			float oldDirX = dir_X;
-			dir_X = dir_X * cosf(-rotSpeed) - dir_Y * sinf(-rotSpeed);
-			dir_Y = oldDirX * sinf(-rotSpeed) + dir_Y * cosf(-rotSpeed);
+			dir_X = dir_X * cosf(-rot_speed) - dir_Y * sinf(-rot_speed);
+			dir_Y = oldDirX * sinf(-rot_speed) + dir_Y * cosf(-rot_speed);
 			float oldPlaneX = plane_X;
-			plane_X = plane_X * cosf(-rotSpeed) - plane_Y * sinf(-rotSpeed);
-			plane_Y = oldPlaneX * sinf(-rotSpeed) + plane_Y * cosf(-rotSpeed);
+			plane_X = plane_X * cosf(-rot_speed) - plane_Y * sinf(-rot_speed);
+			plane_Y = oldPlaneX * sinf(-rot_speed) + plane_Y * cosf(-rot_speed);
 		}
 
 		if (GetAsyncKeyState(VK_A) < 0)
 		{
 			// god I love math
 			float oldDirX = dir_X;
-			dir_X = dir_X * cosf(rotSpeed) - dir_Y * sinf(rotSpeed);
-			dir_Y = oldDirX * sinf(rotSpeed) + dir_Y * cosf(-rotSpeed);
+			dir_X = dir_X * cosf(rot_speed) - dir_Y * sinf(rot_speed);
+			dir_Y = oldDirX * sinf(rot_speed) + dir_Y * cosf(-rot_speed);
 			float oldPlaneX = plane_X;
-			plane_X = plane_X * cosf(rotSpeed) - plane_Y * sinf(rotSpeed);
-			plane_Y = oldPlaneX * sinf(rotSpeed) + plane_Y * cosf(rotSpeed);
+			plane_X = plane_X * cosf(rot_speed) - plane_Y * sinf(rot_speed);
+			plane_Y = oldPlaneX * sinf(rot_speed) + plane_Y * cosf(rot_speed);
 		}
 
 		if (GetAsyncKeyState(VK_W) < 0)
