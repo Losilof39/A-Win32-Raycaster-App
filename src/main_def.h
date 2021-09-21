@@ -44,8 +44,8 @@ const int map[map_width][map_height] = {
 #define MAX_TEX 128
 #define MAX_SPRITES 1
 
-static int client_width;
-static int client_height;
+int backbuffer_width = 640;
+int backbuffer_height = 480;
 
 BOOL bRunning = TRUE;
 
@@ -56,13 +56,25 @@ typedef struct game_bitmap
 	BITMAPINFO bitmap_info;
 }game_bitmap;
 
-/* SPRITE STUFF */
+
+////////////////////////
+//  SPRITES/ENTITIES  //
+////////////////////////
+
 typedef struct entity_t
 {
 	float x, y;
 	float block_dist = 1.0f;	// distance between sprite and entity for when they collide
 	float speed = 1.0f;
 }entity_t;
+
+enum ai_state_t {
+	IDLE,
+	FOLLOW ,
+	ATTACK
+};
+
+ai_state_t AI_STATE = IDLE;
 
 entity_t entities[MAX_SPRITES] = {
 	{5.0f, 6.0f},/*
@@ -106,6 +118,7 @@ bool already_running(void)
 		return false;
 }
 
+// loads a .bmpx file on memory
 int load_bmp(_In_ const char* file_path, _Inout_ game_bitmap* bitmap_target)
 {
 	HANDLE file_hnd = INVALID_HANDLE_VALUE;
@@ -171,6 +184,7 @@ int load_bmp(_In_ const char* file_path, _Inout_ game_bitmap* bitmap_target)
 	return 0;
 }
 
+// loads bitmap data into a buffer
 bool LoadAsTexture(game_bitmap* bitmap, uint32_t* texture)
 {
 	int32_t bitmap_offset = 0;
@@ -192,6 +206,7 @@ bool LoadAsTexture(game_bitmap* bitmap, uint32_t* texture)
 	return true;
 }
 
+// copies pixel data into the color variable, given the bitmap portion we want to copy from
 int LoadTextureIndex(uint32_t* color, game_bitmap bitmap, int index_x, int index_y, int tex_x, int tex_y)	//	bitmap.bitmap_info.bmiHeader.biWidth * (1 - TILE_HEIGHT * index_y) <- why i can't do this way :(
 {
 

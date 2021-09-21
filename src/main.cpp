@@ -31,7 +31,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 	Engine _Engine;
 	
 	// check if there's some problem initializing the engine
-	if (_Engine.Init(hInstance, WndProc) != 0)
+	if (_Engine.Init(WndProc) != 0)
 	{
 		MessageBoxA(_Engine.get_hwnd(), "Failed to initialize the Engine!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
 		return -1;
@@ -45,14 +45,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		return -1;
 	}
 
-	game_bitmap barrel_bmp = { 0 };
-
-	if (load_bmp(".\\assets\\barrel.bmpx", &barrel_bmp) != 0)
-	{
-		MessageBoxA(NULL, "Failed to load a bmpx file!", "[ERROR]", MB_ICONEXCLAMATION | MB_OK);
-		return -1;
-	}
-
 	game_bitmap lamp_bmp = { 0 };
 
 	if (load_bmp(".\\assets\\knight.bmpx", &lamp_bmp) != 0)
@@ -61,7 +53,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		return -1;
 	}
 
-	/* INIT GAME */
+	////////////////////
+	//   INIT GAME    //
+	////////////////////
 
 	float player_posX = 5.0f;
 	float player_posY = 5.0f;
@@ -84,6 +78,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 
 		_Engine.msg_loop();
 		
+		// we keep track how much time has gone by between frames
+		// so that we know how much we have moved when the scene is rendered
 		time_2 = chrono::system_clock::now();
 		chrono::duration<float> elapsed = time_2 - time_1;
 		time_1 = time_2;
@@ -96,9 +92,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		FillRectangle(0, WIN_HEIGHT / 2, WIN_WIDTH, WIN_HEIGHT / 2, 0x555555);
 
 
-		/* 2.5D RENDERING FROM HERE */
+		////////////////////
+		//  3D RENDERING  //
+		////////////////////
 
-		// for every ray casted, do this until we have crossed all the width of the screen
+		// WALL CASTING
 		for(int x = 0; x < WIN_WIDTH; x++)
 		{
 			// camera x coordinates
@@ -212,7 +210,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 			float step = 1.0f * TILE_HEIGHT / line_height;
 			float tex_pos = (draw_start - WIN_HEIGHT / 2 + line_height / 2) * step;
 
-			// loop for drawing a single scanline of texture
+				// loop for drawing a single scanline of texture
 			for (int y = draw_start; y < draw_end; y++)
 			{
 				int tex_Y = int(tex_pos) & (TILE_HEIGHT - 1);
@@ -220,56 +218,60 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 
 				uint32_t color = 0;
 
+				// depending on the wall the ray has hit, the texture would be different
 				switch (tex_num)
 				{
-					case 1:
-					{
-						LoadTextureIndex(&color, wolf3d_bmp, 1, 1, tex_X, tex_Y);
-					}break;
+				case 1:
+				{
+					LoadTextureIndex(&color, wolf3d_bmp, 1, 1, tex_X, tex_Y);
+				}break;
 
-					case 2:
-					{
-						LoadTextureIndex(&color, wolf3d_bmp, 3, 2, tex_X, tex_Y);
-					}break;
+				case 2:
+				{
+					LoadTextureIndex(&color, wolf3d_bmp, 3, 2, tex_X, tex_Y);
+				}break;
 
-					case 3:
-					{
-						LoadTextureIndex(&color, wolf3d_bmp, 4, 8, tex_X, tex_Y);
-					}break;
+				case 3:
+				{
+					LoadTextureIndex(&color, wolf3d_bmp, 4, 8, tex_X, tex_Y);
+				}break;
 
-					case 4:
-					{
-						LoadTextureIndex(&color, wolf3d_bmp, 2, 5, tex_X, tex_Y);
-					}break;
+				case 4:
+				{
+					LoadTextureIndex(&color, wolf3d_bmp, 2, 5, tex_X, tex_Y);
+				}break;
 
-					case 5:
-					{
-						LoadTextureIndex(&color, wolf3d_bmp, 3, 3, tex_X, tex_Y);
-					}break;
+				case 5:
+				{
+					LoadTextureIndex(&color, wolf3d_bmp, 3, 3, tex_X, tex_Y);
+				}break;
 
-					case 6:
-					{
-						LoadTextureIndex(&color, wolf3d_bmp, 5, 7, tex_X, tex_Y);
-					}break;
+				case 6:
+				{
+					LoadTextureIndex(&color, wolf3d_bmp, 5, 7, tex_X, tex_Y);
+				}break;
 
-					case 7:
-					{
-						LoadTextureIndex(&color, wolf3d_bmp, 3, 10, tex_X, tex_Y);
-					}break;
+				case 7:
+				{
+					LoadTextureIndex(&color, wolf3d_bmp, 3, 10, tex_X, tex_Y);
+				}break;
 
-					case 8:
-					{
-						LoadTextureIndex(&color, wolf3d_bmp, 5, 8, tex_X, tex_Y);
-					}break;
+				case 8:
+				{
+					LoadTextureIndex(&color, wolf3d_bmp, 5, 8, tex_X, tex_Y);
+				}break;
 
-					default:
-						LoadTextureIndex(&color, wolf3d_bmp, 6, 10, tex_X, tex_Y);
-						break;
+				default:
+					LoadTextureIndex(&color, wolf3d_bmp, 6, 10, tex_X, tex_Y);
+					break;
 				}
-				
+
+				// this makes the texture darker to a specific side of the walls
 				if (side == true)
 					color = (color >> 1) & 8355711;
+				
 				Draw(x, y, color);
+
 			}
 			z_buffer[x] = perp_wallDist;
 		}
@@ -280,56 +282,72 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 			sprite_distance[i] = (player_posX - entities[i].x) * (player_posX - entities[i].x) + (player_posY - entities[i].y) * (player_posY - entities[i].y);
 		}
 
+		// orders the sprites from far to near
 		sort_sprites(sprite_order, sprite_distance, MAX_SPRITES);
 
+		// SPRITES CASTING
 		for (int i = 0; i < MAX_SPRITES; i++)
 		{
 			//translate sprite position to relative to camera
-			double spriteX = entities[sprite_order[i]].x - player_posX;
-			double spriteY = entities[sprite_order[i]].y - player_posY;
+			double sprite_x = entities[sprite_order[i]].x - player_posX;
+			double sprite_y = entities[sprite_order[i]].y - player_posY;
 
-			double dist = sqrt((spriteX) * (spriteX)+(spriteY) * (spriteY));
+			double dist = sqrt((sprite_x) * (sprite_x)+(sprite_y) * (sprite_y));
 
 			// follow player
-			if (dist > 2.0 && map[(int)entities[sprite_order[i]].x][(int)entities[sprite_order[i]].y] == 0)
+			if (dist < 10.0 && dist > 2.0)	AI_STATE = FOLLOW;	/* && map[(int)entities[sprite_order[i]].x][(int)entities[sprite_order[i]].y] == 0 */
+			else if (dist <= 2.0) AI_STATE = ATTACK;
+			else AI_STATE = IDLE;
+
+			switch (AI_STATE)
 			{
-				entities[sprite_order[i]].x -= (spriteX / dist) * entities[sprite_order[i]].speed * elapsed_time;
-				entities[sprite_order[i]].y -= (spriteY / dist) * entities[sprite_order[i]].speed * elapsed_time;
+			case FOLLOW:
+			{
+				entities[sprite_order[i]].x -= (sprite_x / dist) * entities[sprite_order[i]].speed * elapsed_time;
+				entities[sprite_order[i]].y -= (sprite_y / dist) * entities[sprite_order[i]].speed * elapsed_time;
+			}break;
+
+			case ATTACK:
+			{
+
+			}break;
+
+			default:
+				IDLE;
+				break;
 			}
+				
+			double inv_det = 1.0 / (plane_X * dir_Y - dir_X * plane_Y);
 
-			//transform sprite with the inverse camera matrix
-			// [ planeX   dirX ] -1                                       [ dirY      -dirX ]
-			// [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
-			// [ planeY   dirY ]                                          [ -planeY  planeX ]
+			double transform_x = inv_det * (dir_Y * sprite_x - dir_X * sprite_y);
+			double transform_y = inv_det * (-plane_Y * sprite_x + plane_X * sprite_y);
 
-			double invDet = 1.0 / (plane_X * dir_Y - dir_X * plane_Y); //required for correct matrix multiplication
-
-			double transformX = invDet * (dir_Y * spriteX - dir_X * spriteY);
-			double transformY = invDet * (-plane_Y * spriteX + plane_X * spriteY); //this is actually the depth inside the screen, that what Z is in 3D
-
-			int spriteScreenX = int((WIN_WIDTH / 2) * (1 + transformX / transformY));
+			int sprite_screenX = int((WIN_WIDTH / 2) * (1 + transform_x / transform_y));
 
 			//calculate height of the sprite on screen
-			int spriteHeight = abs(int(WIN_HEIGHT / (transformY))); //using 'transformY' instead of the real distance prevents fisheye
-			//calculate lowest and highest pixel to fill in current stripe
-			int drawStartY = -spriteHeight / 2 + WIN_HEIGHT / 2;
-			if (drawStartY < 0) drawStartY = 0;
-			int drawEndY = spriteHeight / 2 + WIN_HEIGHT / 2;
-			if (drawEndY >= WIN_HEIGHT) drawEndY = WIN_HEIGHT - 1;
-
-			//calculate width of the sprite
-			int spriteWidth = abs(int(WIN_HEIGHT / (transformY)));
-			int drawStartX = -spriteWidth / 2 + spriteScreenX;
-			//if (drawStartX < 0) drawStartX = 0;
-			int drawEndX = spriteWidth / 2 + spriteScreenX;
-			if (drawEndX >= WIN_WIDTH) drawEndX = WIN_WIDTH - 1;
-
-			float scale = 1.0f * spriteHeight / (float)TILE_HEIGHT;
+			int sprite_height = abs(int(WIN_HEIGHT / (transform_y)));
 			
-			DrawSprite(&lamp_bmp, drawStartX, drawStartY, transformY, scale);			
+			//calculate which y to start and end drawing the sprite
+			int start_y =  WIN_HEIGHT / 2 - sprite_height / 2;
+			if (start_y < 0) start_y = 0;
+			int end_y = WIN_HEIGHT / 2 + sprite_height / 2;
+			if (end_y >= WIN_HEIGHT) end_y = WIN_HEIGHT - 1;
+
+			//calculate which x to start and end drawing the sprite
+			int sprite_width = abs(int(WIN_HEIGHT / (transform_y)));
+			int start_x = sprite_screenX - sprite_width / 2;
+			int end_x = sprite_width / 2 + sprite_screenX;
+			if (end_x >= WIN_WIDTH) end_x = WIN_WIDTH - 1;
+
+			float scale = 1.0f * sprite_height / (float)TILE_HEIGHT;
+			
+			DrawSprite(&lamp_bmp, start_x, start_y, transform_y, scale);			
 		}
 
-		/* HANDLING INPUT */
+		////////////////////
+		// HANDLING INPUT //
+		////////////////////
+
 		if (GetAsyncKeyState(VK_D) < 0)
 		{
 			// rotate the view direction and plane

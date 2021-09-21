@@ -19,7 +19,7 @@ void FillRectangle(int x, int y, int client_width, int client_height, uint32_t c
 void Clear(uint32_t color) {
 	uint32_t* pixel = (uint32_t*)gbackbuffer.memory;
 
-	for (int i = 0; i < client_width * client_height; i++)
+	for (int i = 0; i < backbuffer_width * backbuffer_height; i++)
 	{
 		*pixel++ = color;
 	}
@@ -29,11 +29,11 @@ void Draw(int x, int y, uint32_t color) {
 	uint32_t* pixel = (uint32_t*)gbackbuffer.memory;
 
 	// clip any pixel outside client window
-	if (y > client_height - 1 || x > client_width - 1 || x < 0 || y < 0) {
+	if (y > backbuffer_height - 1 || x > backbuffer_width - 1 || x < 0 || y < 0) {
 		// do nothing
 	}
 	else
-		pixel = pixel + y * client_width + x;
+		pixel = pixel + y * backbuffer_width + x;
 	*pixel = color;
 }
 

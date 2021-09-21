@@ -19,20 +19,27 @@ public:
 		return m_hwnd;
 	}
 
-	int Init(HINSTANCE hInstance, LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam))
+	int Init(LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam))
 	{
 		// first create a window class
 		WNDCLASS wc = { 0 };
 
 		wc.lpfnWndProc = WndProc;
-		wc.hInstance = hInstance;
+		wc.hInstance = NULL;
 		wc.lpszClassName = L"main_wndclass";
 
 		// second, we register the class we have created
 		RegisterClass(&wc);
 
+		DWORD dwStyle = WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME;
+
+		RECT rect = { 0 };
+		rect.right = WIN_WIDTH;
+		rect.bottom = WIN_HEIGHT;
+		AdjustWindowRectEx(&rect, 0, 0, dwStyle);
+
 		// third, we create a window using the class registered and we show it
-		m_hwnd = CreateWindowEx(0, wc.lpszClassName, L"Win32 Raycaster", WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, 0, 0, WIN_WIDTH, WIN_HEIGHT, 0, 0, hInstance, 0);
+		m_hwnd = CreateWindowEx(0, wc.lpszClassName, L"Win32 Raycaster", dwStyle, 0, 0, rect.right - rect.left, rect.bottom - rect.top, 0, 0, NULL, 0);
 
 
 		if (m_hwnd == NULL)
@@ -47,28 +54,21 @@ public:
 			return -1;
 		}
 
-		RECT rect;
-		GetClientRect(get_hwnd(), &rect);
-		client_width = rect.right - rect.left;
-		client_height = rect.bottom - rect.top;
-
 		ShowCursor(FALSE);
 		
 		// bitmap setup
 		gbackbuffer.bitmap_info.bmiHeader.biSize = sizeof(gbackbuffer.bitmap_info.bmiHeader);
-		gbackbuffer.bitmap_info.bmiHeader.biWidth = client_width;		// width of the rectangle!!
-		gbackbuffer.bitmap_info.bmiHeader.biHeight = -client_height;	// height of the rectangle!!
+		gbackbuffer.bitmap_info.bmiHeader.biWidth = backbuffer_width;		// width of the rectangle!!
+		gbackbuffer.bitmap_info.bmiHeader.biHeight = -backbuffer_height;	// height of the rectangle!!
 		gbackbuffer.bitmap_info.bmiHeader.biPlanes = 1;
 		gbackbuffer.bitmap_info.bmiHeader.biBitCount = 32;
 		gbackbuffer.bitmap_info.bmiHeader.biCompression = BI_RGB;
 
 		// allocate backbuffer, this is where all the drawing is going to
-		gbackbuffer.memory = VirtualAlloc(0, size_t(client_width * client_height * 4), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+		gbackbuffer.memory = malloc(size_t(backbuffer_width * backbuffer_height * 4));
 
 		return 0;
 	}
-
-	//void get_input();
 
 	void msg_loop()
 	{
@@ -87,7 +87,7 @@ public:
 		HDC deviceContext = GetDC(m_hwnd);
 
 		// copies backbuffer to screen
-		StretchDIBits(deviceContext, 0, 0, client_width, client_height, 0, 0, client_width, client_height, gbackbuffer.memory, &gbackbuffer.bitmap_info, DIB_RGB_COLORS, SRCCOPY);
+		StretchDIBits(deviceContext, 0, 0, backbuffer_width, backbuffer_height, 0, 0, backbuffer_width, backbuffer_height, gbackbuffer.memory, &gbackbuffer.bitmap_info, DIB_RGB_COLORS, SRCCOPY);
 
 		ReleaseDC(m_hwnd, deviceContext);
 	}
