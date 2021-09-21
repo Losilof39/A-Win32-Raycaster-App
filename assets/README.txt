@@ -1,0 +1,1 @@
+All the textures used are copyrighted by Id SOFTWARE (www.idsoftware.com) and are used only for educational purposes! Credits to Ultimecia.
