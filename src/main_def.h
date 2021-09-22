@@ -65,8 +65,17 @@ typedef struct entity_t
 {
 	float x, y;
 	float block_dist = 1.0f;	// distance between sprite and entity for when they collide
-	float speed = 1.0f;
+	float speed = 3.0f;
 }entity_t;
+
+typedef struct player_t
+{
+	float x, y;
+	int health;
+	float walk_vel;
+	float rot_vel;
+	int damage;
+}player_t;
 
 enum ai_state_t {
 	IDLE,

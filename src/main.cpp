@@ -57,8 +57,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 	//   INIT GAME    //
 	////////////////////
 
-	float player_posX = 5.0f;
-	float player_posY = 5.0f;
+	player_t player = { 5.0f, 5.0f, 100, 10.0f, 3.0f, 10 };
+
+	float game_time = 0.0f;
 
 	const float speed = 10.0f;
 
@@ -71,7 +72,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 	auto old_time = chrono::system_clock::now();
 	auto new_time = chrono::system_clock::now();
 
-	while (bRunning) {
+	while (bRunning && player.health != 0) {
 
 		if (GetAsyncKeyState(VK_ESCAPE) < 0)
 			bRunning = FALSE;
@@ -84,6 +85,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		chrono::duration<float> elapsed = new_time - old_time;
 		old_time = new_time;
 		float elapsed_time = elapsed.count();
+		game_time += elapsed_time;
 
 		float rot_speed = 3.0f * elapsed_time;
 
@@ -105,8 +107,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 			float ray_dirX = dir_X + plane_X * camera_X;
 			float ray_dirY = dir_Y + plane_Y * camera_X;
 
-			int map_X = int(player_posX);
-			int map_Y = int(player_posY);
+			int map_X = int(player.x);
+			int map_Y = int(player.y);
 
 			float side_distX;
 			float side_distY;
@@ -126,24 +128,24 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 			if (ray_dirX < 0)
 			{
 				step_X = -1;
-				side_distX = (player_posX - map_X) * delta_distX;
+				side_distX = (player.x - map_X) * delta_distX;
 			}
 			else
 			{
 				step_X = 1;
-				side_distX = (map_X + 1.0f - player_posX) * delta_distX;
+				side_distX = (map_X + 1.0f - player.x) * delta_distX;
 			}
 
 			if (ray_dirY < 0)
 			{
 				step_Y = -1;
-				side_distY = (player_posY - map_Y) * delta_distY;
+				side_distY = (player.y - map_Y) * delta_distY;
 
 			}
 			else
 			{
 				step_Y = 1;
-				side_distY = (map_Y + 1.0f - player_posY) * delta_distY;
+				side_distY = (map_Y + 1.0f - player.y) * delta_distY;
 			}
 
 			// check and find which wall was hit
@@ -170,9 +172,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 
 			// calculating the distance between the plane and the wall
 			if (side == false)
-				perp_wallDist = (map_X - player_posX + (1 - step_X) / 2) / ray_dirX;
+				perp_wallDist = (map_X - player.x + (1 - step_X) / 2) / ray_dirX;
 			else
-				perp_wallDist = (map_Y - player_posY + (1 - step_Y) / 2) / ray_dirY;
+				perp_wallDist = (map_Y - player.y + (1 - step_Y) / 2) / ray_dirY;
 
 			int line_height = int(WIN_HEIGHT / perp_wallDist);
 
@@ -192,9 +194,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 			float wall_X;	// where the wall was exactly hit
 
 			if (side == false)
-				wall_X = player_posY + perp_wallDist * ray_dirY;
+				wall_X = player.y + perp_wallDist * ray_dirY;
 			else
-				wall_X = player_posX + perp_wallDist * ray_dirX;
+				wall_X = player.x + perp_wallDist * ray_dirX;
 
 			// calculates which part of the texture to draw (wall_X would go from 0 to 1)
 			wall_X -= floorf(wall_X);
@@ -279,7 +281,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		for (int i = 0; i < MAX_SPRITES; i++)
 		{
 			sprite_order[i] = i;
-			sprite_distance[i] = (player_posX - entities[i].x) * (player_posX - entities[i].x) + (player_posY - entities[i].y) * (player_posY - entities[i].y);
+			sprite_distance[i] = (player.x - entities[i].x) * (player.x - entities[i].x) + (player.y - entities[i].y) * (player.y - entities[i].y);
 		}
 
 		// orders the sprites from far to near
@@ -289,8 +291,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		for (int i = 0; i < MAX_SPRITES; i++)
 		{
 			//translate sprite position to relative to camera
-			double sprite_x = entities[sprite_order[i]].x - player_posX;
-			double sprite_y = entities[sprite_order[i]].y - player_posY;
+			double sprite_x = entities[sprite_order[i]].x - player.x;
+			double sprite_y = entities[sprite_order[i]].y - player.y;
 
 			double dist = sqrt((sprite_x) * (sprite_x)+(sprite_y) * (sprite_y));
 
@@ -309,7 +311,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 
 			case ATTACK:
 			{
-
+				if ((2 + (int)game_time) % 8 == 0)
+					player.health -= 10;
 			}break;
 
 			default:
@@ -373,21 +376,21 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		if (GetAsyncKeyState(VK_W) < 0)
 		{
 			// check ahead of player if there's a wall, if not move
-			if(map[int(player_posX + dir_X)][int(player_posY)] == false)
-				player_posX += dir_X * speed * elapsed_time;
+			if(map[int(player.x + dir_X)][int(player.y)] == false)
+				player.x += dir_X * speed * elapsed_time;
 
-			if(map[int(player_posX)][int(player_posY + dir_Y)] == false)
-				player_posY += dir_Y * speed * elapsed_time;
+			if(map[int(player.x)][int(player.y + dir_Y)] == false)
+				player.y += dir_Y * speed * elapsed_time;
 		}
 
 		if (GetAsyncKeyState(VK_S) < 0)
 		{
 			// check behind the player if there's a wall, if not move
-			if (map[int(player_posX - dir_X)][int(player_posY)] == false)
-				player_posX -= dir_X * speed * elapsed_time;
+			if (map[int(player.x - dir_X)][int(player.y)] == false)
+				player.x -= dir_X * speed * elapsed_time;
 
-			if (map[int(player_posX)][int(player_posY - dir_Y)] == false)
-				player_posY -= dir_Y * speed * elapsed_time;
+			if (map[int(player.x)][int(player.y - dir_Y)] == false)
+				player.y -= dir_Y * speed * elapsed_time;
 		}
 
 		// slap that backybuffer to the screen
