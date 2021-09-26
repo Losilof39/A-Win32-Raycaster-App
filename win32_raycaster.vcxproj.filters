@@ -18,6 +18,9 @@
     <ClCompile Include="src\main.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
+    <ClCompile Include="src\menu.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\draw.h">
@@ -27,6 +30,9 @@
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="src\main_def.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="src\menu.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,4 +1,5 @@
 #include "main_def.h"
+#include "menu.h"
 #include "engine.h"
 #include "draw.h"
 
@@ -87,310 +88,317 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 		float elapsed_time = elapsed.count();
 		game_time += elapsed_time;
 
-		float rot_speed = 3.0f * elapsed_time;
-
-		// clear screen
-		FillRectangle(0, 0, WIN_WIDTH, WIN_HEIGHT / 2, 0x222222);
-		FillRectangle(0, WIN_HEIGHT / 2, WIN_WIDTH, WIN_HEIGHT / 2, 0x555555);
-
-
-		////////////////////
-		//  3D RENDERING  //
-		////////////////////
-
-		// WALL CASTING
-		for(int x = 0; x < WIN_WIDTH; x++)
+		if (start_game)
 		{
-			// camera x coordinates
-			float camera_X = 2 * x / float(WIN_WIDTH) - 1;
+			float rot_speed = 3.0f * elapsed_time;
 
-			float ray_dirX = dir_X + plane_X * camera_X;
-			float ray_dirY = dir_Y + plane_Y * camera_X;
+			// clear screen
+			FillRectangle(0, 0, WIN_WIDTH, WIN_HEIGHT / 2, 0x222222);
+			FillRectangle(0, WIN_HEIGHT / 2, WIN_WIDTH, WIN_HEIGHT / 2, 0x555555);
 
-			int map_X = int(player.x);
-			int map_Y = int(player.y);
 
-			float side_distX;
-			float side_distY;
+			////////////////////
+			//  3D RENDERING  //
+			////////////////////
 
-			float delta_distX = std::abs(1 / ray_dirX);
-			float delta_distY = std::abs(1 / ray_dirY);
-
-			float perp_wallDist;
-
-			int step_X;
-			int step_Y;
-
-			bool hit = false;
-			bool side = false;
-
-			// finds which direction the ray points to
-			if (ray_dirX < 0)
+			// WALL CASTING
+			for (int x = 0; x < WIN_WIDTH; x++)
 			{
-				step_X = -1;
-				side_distX = (player.x - map_X) * delta_distX;
-			}
-			else
-			{
-				step_X = 1;
-				side_distX = (map_X + 1.0f - player.x) * delta_distX;
-			}
+				// camera x coordinates
+				float camera_X = 2 * x / float(WIN_WIDTH) - 1;
 
-			if (ray_dirY < 0)
-			{
-				step_Y = -1;
-				side_distY = (player.y - map_Y) * delta_distY;
+				float ray_dirX = dir_X + plane_X * camera_X;
+				float ray_dirY = dir_Y + plane_Y * camera_X;
 
-			}
-			else
-			{
-				step_Y = 1;
-				side_distY = (map_Y + 1.0f - player.y) * delta_distY;
-			}
+				int map_X = int(player.x);
+				int map_Y = int(player.y);
 
-			// check and find which wall was hit
-			while (hit == false)
-			{
-				if (side_distX < side_distY)
+				float side_distX;
+				float side_distY;
+
+				float delta_distX = std::abs(1 / ray_dirX);
+				float delta_distY = std::abs(1 / ray_dirY);
+
+				float perp_wallDist;
+
+				int step_X;
+				int step_Y;
+
+				bool hit = false;
+				bool side = false;
+
+				// finds which direction the ray points to
+				if (ray_dirX < 0)
 				{
-					side_distX = side_distX + delta_distX;
-					map_X = map_X + step_X;
-					side = false;
+					step_X = -1;
+					side_distX = (player.x - map_X) * delta_distX;
 				}
 				else
 				{
-					side_distY = side_distY + delta_distY;
-					map_Y = map_Y + step_Y;
-					side = true;
+					step_X = 1;
+					side_distX = (map_X + 1.0f - player.x) * delta_distX;
 				}
 
-				if (map[map_X][map_Y] > 0)
+				if (ray_dirY < 0)
 				{
-					hit = true;
+					step_Y = -1;
+					side_distY = (player.y - map_Y) * delta_distY;
+
 				}
-			}
+				else
+				{
+					step_Y = 1;
+					side_distY = (map_Y + 1.0f - player.y) * delta_distY;
+				}
 
-			// calculating the distance between the plane and the wall
-			if (side == false)
-				perp_wallDist = (map_X - player.x + (1 - step_X) / 2) / ray_dirX;
-			else
-				perp_wallDist = (map_Y - player.y + (1 - step_Y) / 2) / ray_dirY;
+				// check and find which wall was hit
+				while (hit == false)
+				{
+					if (side_distX < side_distY)
+					{
+						side_distX = side_distX + delta_distX;
+						map_X = map_X + step_X;
+						side = false;
+					}
+					else
+					{
+						side_distY = side_distY + delta_distY;
+						map_Y = map_Y + step_Y;
+						side = true;
+					}
 
-			int line_height = int(WIN_HEIGHT / perp_wallDist);
+					if (map[map_X][map_Y] > 0)
+					{
+						hit = true;
+					}
+				}
 
-			int draw_start = -line_height / 2 + WIN_HEIGHT / 2;
+				// calculating the distance between the plane and the wall
+				if (side == false)
+					perp_wallDist = (map_X - player.x + (1 - step_X) / 2) / ray_dirX;
+				else
+					perp_wallDist = (map_Y - player.y + (1 - step_Y) / 2) / ray_dirY;
 
-			if (draw_start < 0)
-				draw_start = 0;
+				int line_height = int(WIN_HEIGHT / perp_wallDist);
 
-			int draw_end = line_height / 2 + WIN_HEIGHT / 2;
+				int draw_start = -line_height / 2 + WIN_HEIGHT / 2;
 
-			if (draw_end >= WIN_HEIGHT)
-				draw_end = WIN_HEIGHT - 1;
+				if (draw_start < 0)
+					draw_start = 0;
 
-			// TODO: understand this stuff
-			int tex_num = map[map_X][map_Y];
+				int draw_end = line_height / 2 + WIN_HEIGHT / 2;
 
-			float wall_X;	// where the wall was exactly hit
+				if (draw_end >= WIN_HEIGHT)
+					draw_end = WIN_HEIGHT - 1;
 
-			if (side == false)
-				wall_X = player.y + perp_wallDist * ray_dirY;
-			else
-				wall_X = player.x + perp_wallDist * ray_dirX;
+				// TODO: understand this stuff
+				int tex_num = map[map_X][map_Y];
 
-			// calculates which part of the texture to draw (wall_X would go from 0 to 1)
-			wall_X -= floorf(wall_X);
-			int tex_X = int(wall_X * float(TILE_WIDTH));
+				float wall_X;	// where the wall was exactly hit
+
+				if (side == false)
+					wall_X = player.y + perp_wallDist * ray_dirY;
+				else
+					wall_X = player.x + perp_wallDist * ray_dirX;
+
+				// calculates which part of the texture to draw (wall_X would go from 0 to 1)
+				wall_X -= floorf(wall_X);
+				int tex_X = int(wall_X * float(TILE_WIDTH));
 
 
-			if (side == false && ray_dirX > 0)
-				tex_X = (TILE_WIDTH - 1) - tex_X;
+				if (side == false && ray_dirX > 0)
+					tex_X = (TILE_WIDTH - 1) - tex_X;
 
-			if(side == true && ray_dirY < 0)
-				tex_X = (TILE_WIDTH - 1) - tex_X;
+				if (side == true && ray_dirY < 0)
+					tex_X = (TILE_WIDTH - 1) - tex_X;
 
-			float step = 1.0f * TILE_HEIGHT / line_height;
-			float tex_pos = (draw_start - WIN_HEIGHT / 2 + line_height / 2) * step;
+				float step = 1.0f * TILE_HEIGHT / line_height;
+				float tex_pos = (draw_start - WIN_HEIGHT / 2 + line_height / 2) * step;
 
 				// loop for drawing a single scanline of texture
-			for (int y = draw_start; y < draw_end; y++)
+				for (int y = draw_start; y < draw_end; y++)
+				{
+					int tex_Y = int(tex_pos) & (TILE_HEIGHT - 1);
+					tex_pos += step;
+
+					uint32_t color = 0;
+
+					// depending on the wall the ray has hit, the texture would be different
+					switch (tex_num)
+					{
+					case 1:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 1, 1, tex_X, tex_Y);
+					}break;
+
+					case 2:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 3, 2, tex_X, tex_Y);
+					}break;
+
+					case 3:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 4, 8, tex_X, tex_Y);
+					}break;
+
+					case 4:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 2, 5, tex_X, tex_Y);
+					}break;
+
+					case 5:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 3, 3, tex_X, tex_Y);
+					}break;
+
+					case 6:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 5, 7, tex_X, tex_Y);
+					}break;
+
+					case 7:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 3, 10, tex_X, tex_Y);
+					}break;
+
+					case 8:
+					{
+						LoadTextureIndex(&color, wolf3d_bmp, 5, 8, tex_X, tex_Y);
+					}break;
+
+					default:
+						LoadTextureIndex(&color, wolf3d_bmp, 6, 10, tex_X, tex_Y);
+						break;
+					}
+
+					// this makes the texture darker to a specific side of the walls
+					if (side == true)
+						color = (color >> 1) & 8355711;
+
+					Draw(x, y, color);
+
+				}
+				z_buffer[x] = perp_wallDist;
+			}
+
+			for (int i = 0; i < MAX_SPRITES; i++)
 			{
-				int tex_Y = int(tex_pos) & (TILE_HEIGHT - 1);
-				tex_pos += step;
+				sprite_order[i] = i;
+				sprite_distance[i] = (player.x - entities[i].x) * (player.x - entities[i].x) + (player.y - entities[i].y) * (player.y - entities[i].y);
+			}
 
-				uint32_t color = 0;
+			// orders the sprites from far to near
+			sort_sprites(sprite_order, sprite_distance, MAX_SPRITES);
 
-				// depending on the wall the ray has hit, the texture would be different
-				switch (tex_num)
+			// SPRITES CASTING
+			for (int i = 0; i < MAX_SPRITES; i++)
+			{
+				//translate sprite position to relative to camera
+				double sprite_x = entities[sprite_order[i]].x - player.x;
+				double sprite_y = entities[sprite_order[i]].y - player.y;
+
+				double dist = sqrt((sprite_x) * (sprite_x)+(sprite_y) * (sprite_y));
+
+				// follow player
+				if (dist < 10.0 && dist > 2.0)	entities[i].AI_STATE = FOLLOW;	/* && map[(int)entities[sprite_order[i]].x][(int)entities[sprite_order[i]].y] == 0 */
+				else if (dist <= 2.0) entities[i].AI_STATE = ATTACK;
+				else entities[i].AI_STATE = IDLE;
+
+				switch (entities[i].AI_STATE)
 				{
-				case 1:
+				case FOLLOW:
 				{
-					LoadTextureIndex(&color, wolf3d_bmp, 1, 1, tex_X, tex_Y);
+					entities[sprite_order[i]].x -= (sprite_x / dist) * entities[sprite_order[i]].speed * elapsed_time;
+					entities[sprite_order[i]].y -= (sprite_y / dist) * entities[sprite_order[i]].speed * elapsed_time;
 				}break;
 
-				case 2:
+				case ATTACK:
 				{
-					LoadTextureIndex(&color, wolf3d_bmp, 3, 2, tex_X, tex_Y);
-				}break;
-
-				case 3:
-				{
-					LoadTextureIndex(&color, wolf3d_bmp, 4, 8, tex_X, tex_Y);
-				}break;
-
-				case 4:
-				{
-					LoadTextureIndex(&color, wolf3d_bmp, 2, 5, tex_X, tex_Y);
-				}break;
-
-				case 5:
-				{
-					LoadTextureIndex(&color, wolf3d_bmp, 3, 3, tex_X, tex_Y);
-				}break;
-
-				case 6:
-				{
-					LoadTextureIndex(&color, wolf3d_bmp, 5, 7, tex_X, tex_Y);
-				}break;
-
-				case 7:
-				{
-					LoadTextureIndex(&color, wolf3d_bmp, 3, 10, tex_X, tex_Y);
-				}break;
-
-				case 8:
-				{
-					LoadTextureIndex(&color, wolf3d_bmp, 5, 8, tex_X, tex_Y);
+					/*if ((2 + (int)game_time) % 8 == 0)
+						player.health -= 10;*/
 				}break;
 
 				default:
-					LoadTextureIndex(&color, wolf3d_bmp, 6, 10, tex_X, tex_Y);
+					IDLE;
 					break;
 				}
 
-				// this makes the texture darker to a specific side of the walls
-				if (side == true)
-					color = (color >> 1) & 8355711;
-				
-				Draw(x, y, color);
+				double inv_det = 1.0 / (plane_X * dir_Y - dir_X * plane_Y);
 
+				double transform_x = inv_det * (dir_Y * sprite_x - dir_X * sprite_y);
+				double transform_y = inv_det * (-plane_Y * sprite_x + plane_X * sprite_y);
+
+				int sprite_screenX = int((WIN_WIDTH / 2) * (1 + transform_x / transform_y));
+
+				//calculate height of the sprite on screen
+				int sprite_height = abs(int(WIN_HEIGHT / (transform_y)));
+
+				//calculate which y to start and end drawing the sprite
+				int start_y = WIN_HEIGHT / 2 - sprite_height / 2;
+				if (start_y < 0) start_y = 0;
+				int end_y = WIN_HEIGHT / 2 + sprite_height / 2;
+				if (end_y >= WIN_HEIGHT) end_y = WIN_HEIGHT - 1;
+
+				//calculate which x to start and end drawing the sprite
+				int sprite_width = abs(int(WIN_HEIGHT / (transform_y)));
+				int start_x = sprite_screenX - sprite_width / 2;
+				int end_x = sprite_width / 2 + sprite_screenX;
+				if (end_x >= WIN_WIDTH) end_x = WIN_WIDTH - 1;
+
+				float scale = 1.0f * sprite_height / (float)TILE_HEIGHT;
+
+				DrawSprite(&knight_bmp, start_x, start_y, transform_y, scale);
 			}
-			z_buffer[x] = perp_wallDist;
-		}
 
-		for (int i = 0; i < MAX_SPRITES; i++)
-		{
-			sprite_order[i] = i;
-			sprite_distance[i] = (player.x - entities[i].x) * (player.x - entities[i].x) + (player.y - entities[i].y) * (player.y - entities[i].y);
-		}
+			////////////////////
+			// HANDLING INPUT //
+			////////////////////
 
-		// orders the sprites from far to near
-		sort_sprites(sprite_order, sprite_distance, MAX_SPRITES);
-
-		// SPRITES CASTING
-		for (int i = 0; i < MAX_SPRITES; i++)
-		{
-			//translate sprite position to relative to camera
-			double sprite_x = entities[sprite_order[i]].x - player.x;
-			double sprite_y = entities[sprite_order[i]].y - player.y;
-
-			double dist = sqrt((sprite_x) * (sprite_x)+(sprite_y) * (sprite_y));
-
-			// follow player
-			if (dist < 10.0 && dist > 2.0)	entities[i].AI_STATE = FOLLOW;	/* && map[(int)entities[sprite_order[i]].x][(int)entities[sprite_order[i]].y] == 0 */
-			else if (dist <= 2.0) entities[i].AI_STATE = ATTACK;
-			else entities[i].AI_STATE = IDLE;
-
-			switch (entities[i].AI_STATE)
+			if (GetAsyncKeyState(VK_D) < 0)
 			{
-			case FOLLOW:
-			{
-				entities[sprite_order[i]].x -= (sprite_x / dist) * entities[sprite_order[i]].speed * elapsed_time;
-				entities[sprite_order[i]].y -= (sprite_y / dist) * entities[sprite_order[i]].speed * elapsed_time;
-			}break;
-
-			case ATTACK:
-			{
-				/*if ((2 + (int)game_time) % 8 == 0)
-					player.health -= 10;*/
-			}break;
-
-			default:
-				IDLE;
-				break;
+				// rotate the view direction and plane
+				float oldDirX = dir_X;
+				dir_X = dir_X * cosf(-rot_speed) - dir_Y * sinf(-rot_speed);
+				dir_Y = oldDirX * sinf(-rot_speed) + dir_Y * cosf(-rot_speed);
+				float oldPlaneX = plane_X;
+				plane_X = plane_X * cosf(-rot_speed) - plane_Y * sinf(-rot_speed);
+				plane_Y = oldPlaneX * sinf(-rot_speed) + plane_Y * cosf(-rot_speed);
 			}
-				
-			double inv_det = 1.0 / (plane_X * dir_Y - dir_X * plane_Y);
 
-			double transform_x = inv_det * (dir_Y * sprite_x - dir_X * sprite_y);
-			double transform_y = inv_det * (-plane_Y * sprite_x + plane_X * sprite_y);
+			if (GetAsyncKeyState(VK_A) < 0)
+			{
+				// god I love math
+				float oldDirX = dir_X;
+				dir_X = dir_X * cosf(rot_speed) - dir_Y * sinf(rot_speed);
+				dir_Y = oldDirX * sinf(rot_speed) + dir_Y * cosf(-rot_speed);
+				float oldPlaneX = plane_X;
+				plane_X = plane_X * cosf(rot_speed) - plane_Y * sinf(rot_speed);
+				plane_Y = oldPlaneX * sinf(rot_speed) + plane_Y * cosf(rot_speed);
+			}
 
-			int sprite_screenX = int((WIN_WIDTH / 2) * (1 + transform_x / transform_y));
+			if (GetAsyncKeyState(VK_W) < 0)
+			{
+				// check ahead of player if there's a wall, if not move
+				if (map[int(player.x + dir_X)][int(player.y)] == false)
+					player.x += dir_X * speed * elapsed_time;
 
-			//calculate height of the sprite on screen
-			int sprite_height = abs(int(WIN_HEIGHT / (transform_y)));
-			
-			//calculate which y to start and end drawing the sprite
-			int start_y =  WIN_HEIGHT / 2 - sprite_height / 2;
-			if (start_y < 0) start_y = 0;
-			int end_y = WIN_HEIGHT / 2 + sprite_height / 2;
-			if (end_y >= WIN_HEIGHT) end_y = WIN_HEIGHT - 1;
+				if (map[int(player.x)][int(player.y + dir_Y)] == false)
+					player.y += dir_Y * speed * elapsed_time;
+			}
 
-			//calculate which x to start and end drawing the sprite
-			int sprite_width = abs(int(WIN_HEIGHT / (transform_y)));
-			int start_x = sprite_screenX - sprite_width / 2;
-			int end_x = sprite_width / 2 + sprite_screenX;
-			if (end_x >= WIN_WIDTH) end_x = WIN_WIDTH - 1;
+			if (GetAsyncKeyState(VK_S) < 0)
+			{
+				// check behind the player if there's a wall, if not move
+				if (map[int(player.x - dir_X)][int(player.y)] == false)
+					player.x -= dir_X * speed * elapsed_time;
 
-			float scale = 1.0f * sprite_height / (float)TILE_HEIGHT;
-			
-			DrawSprite(&knight_bmp, start_x, start_y, transform_y, scale);			
+				if (map[int(player.x)][int(player.y - dir_Y)] == false)
+					player.y -= dir_Y * speed * elapsed_time;
+			}
 		}
-
-		////////////////////
-		// HANDLING INPUT //
-		////////////////////
-
-		if (GetAsyncKeyState(VK_D) < 0)
+		else
 		{
-			// rotate the view direction and plane
-			float oldDirX = dir_X;
-			dir_X = dir_X * cosf(-rot_speed) - dir_Y * sinf(-rot_speed);
-			dir_Y = oldDirX * sinf(-rot_speed) + dir_Y * cosf(-rot_speed);
-			float oldPlaneX = plane_X;
-			plane_X = plane_X * cosf(-rot_speed) - plane_Y * sinf(-rot_speed);
-			plane_Y = oldPlaneX * sinf(-rot_speed) + plane_Y * cosf(-rot_speed);
-		}
-
-		if (GetAsyncKeyState(VK_A) < 0)
-		{
-			// god I love math
-			float oldDirX = dir_X;
-			dir_X = dir_X * cosf(rot_speed) - dir_Y * sinf(rot_speed);
-			dir_Y = oldDirX * sinf(rot_speed) + dir_Y * cosf(-rot_speed);
-			float oldPlaneX = plane_X;
-			plane_X = plane_X * cosf(rot_speed) - plane_Y * sinf(rot_speed);
-			plane_Y = oldPlaneX * sinf(rot_speed) + plane_Y * cosf(rot_speed);
-		}
-
-		if (GetAsyncKeyState(VK_W) < 0)
-		{
-			// check ahead of player if there's a wall, if not move
-			if(map[int(player.x + dir_X)][int(player.y)] == false)
-				player.x += dir_X * speed * elapsed_time;
-
-			if(map[int(player.x)][int(player.y + dir_Y)] == false)
-				player.y += dir_Y * speed * elapsed_time;
-		}
-
-		if (GetAsyncKeyState(VK_S) < 0)
-		{
-			// check behind the player if there's a wall, if not move
-			if (map[int(player.x - dir_X)][int(player.y)] == false)
-				player.x -= dir_X * speed * elapsed_time;
-
-			if (map[int(player.x)][int(player.y - dir_Y)] == false)
-				player.y -= dir_Y * speed * elapsed_time;
+			menu_loop();
 		}
 
 		// slap that backybuffer to the screen

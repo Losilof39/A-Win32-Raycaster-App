@@ -20,11 +20,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\menu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\draw.h" />
     <ClInclude Include="src\engine.h" />
     <ClInclude Include="src\main_def.h" />
+    <ClInclude Include="src\menu.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

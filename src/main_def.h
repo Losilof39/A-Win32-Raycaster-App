@@ -48,6 +48,7 @@ int backbuffer_width = 640;
 int backbuffer_height = 480;
 
 BOOL bRunning = TRUE;
+BOOL start_game = FALSE;
 
 // struct where we store the bitmap from our "assets" folder
 typedef struct game_bitmap 
@@ -83,6 +84,18 @@ typedef struct player_t
 	float rot_vel;
 	int damage;
 }player_t;
+
+player_t player = { 5.0f, 5.0f, 100, 10.0f, 3.0f, 10 };
+
+float game_time = 0.0f;
+
+const float speed = 10.0f;
+
+float dir_X = -1.0f;
+float dir_Y = 0.0f;
+
+float plane_X = 0.0f;
+float plane_Y = 0.66f;
 
 entity_t entities[MAX_SPRITES] = {
 	{5.0f, 6.0f}/*

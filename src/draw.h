@@ -2,8 +2,6 @@
 #include <chrono>
 #include <vector>
 
-#define SWAP(x,y) do { (x)=(x)^(y); (y)=(x)^(y); (x)=(x)^(y); } while(0)
-
 // global backbuffer
 game_bitmap gbackbuffer;
 
