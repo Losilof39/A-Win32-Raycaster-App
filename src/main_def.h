@@ -61,11 +61,18 @@ typedef struct game_bitmap
 //  SPRITES/ENTITIES  //
 ////////////////////////
 
+enum ai_state_t {
+	IDLE,
+	FOLLOW,
+	ATTACK
+};
+
 typedef struct entity_t
 {
 	float x, y;
 	float block_dist = 1.0f;	// distance between sprite and entity for when they collide
 	float speed = 3.0f;
+	ai_state_t AI_STATE;
 }entity_t;
 
 typedef struct player_t
@@ -76,14 +83,6 @@ typedef struct player_t
 	float rot_vel;
 	int damage;
 }player_t;
-
-enum ai_state_t {
-	IDLE,
-	FOLLOW ,
-	ATTACK
-};
-
-ai_state_t AI_STATE = IDLE;
 
 entity_t entities[MAX_SPRITES] = {
 	{5.0f, 6.0f}/*

@@ -297,11 +297,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 			double dist = sqrt((sprite_x) * (sprite_x)+(sprite_y) * (sprite_y));
 
 			// follow player
-			if (dist < 10.0 && dist > 2.0)	AI_STATE = FOLLOW;	/* && map[(int)entities[sprite_order[i]].x][(int)entities[sprite_order[i]].y] == 0 */
-			else if (dist <= 2.0) AI_STATE = ATTACK;
-			else AI_STATE = IDLE;
+			if (dist < 10.0 && dist > 2.0)	entities[i].AI_STATE = FOLLOW;	/* && map[(int)entities[sprite_order[i]].x][(int)entities[sprite_order[i]].y] == 0 */
+			else if (dist <= 2.0) entities[i].AI_STATE = ATTACK;
+			else entities[i].AI_STATE = IDLE;
 
-			switch (AI_STATE)
+			switch (entities[i].AI_STATE)
 			{
 			case FOLLOW:
 			{
@@ -311,8 +311,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 
 			case ATTACK:
 			{
-				if ((2 + (int)game_time) % 8 == 0)
-					player.health -= 10;
+				/*if ((2 + (int)game_time) % 8 == 0)
+					player.health -= 10;*/
 			}break;
 
 			default:
