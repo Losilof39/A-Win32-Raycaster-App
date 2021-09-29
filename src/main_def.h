@@ -140,7 +140,7 @@ bool already_running(void)
 }
 
 // loads a .bmpx file on memory
-int LoadBMP_FromDisk(_In_ const char* file_path, _Inout_ game_bitmap* bitmap_target)
+int LoadBMP_FromDisk(const char* file_path, game_bitmap* bitmap_target)
 {
 	HANDLE file_hnd = INVALID_HANDLE_VALUE;
 

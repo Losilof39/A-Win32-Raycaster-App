@@ -2,8 +2,11 @@
 #include "menu.h"
 #include "engine.h"
 #include "draw.h"
+#include <chrono>
 
 using namespace std;
+
+int curpos = 0;
 
 // this is where the messages received from the OS (Windows) are treated (e.g. clicked the "X" button: message sent by OS -> APP: close the window)
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -15,6 +18,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			bRunning = FALSE;
 			PostQuitMessage(0);
 		} break;
+
+		case WM_KEYDOWN:
+		{
+			switch (wParam)
+			{
+			case VK_W:
+			{
+				curpos--;
+			}break;
+
+			case VK_S:
+			{
+				curpos++;
+			}break;
+
+			default:
+				break;
+			}
+		}
 
 		default:
 			// any messages we did not treat? pass them to a default function
@@ -30,7 +52,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 	_In_ int nShowCmd) {
 
 	Engine _Engine;
-	
+
 	// check if there's some problem initializing the engine
 	if (_Engine.Init(WndProc) != 0)
 	{
@@ -70,27 +92,35 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 	float plane_X = 0.0f;
 	float plane_Y = 0.66f;
 
-	auto old_time = chrono::system_clock::now();
-	auto new_time = chrono::system_clock::now();
+	auto start_time = chrono::system_clock::now();
+	auto end_time = chrono::system_clock::now();
+
+	float target_fps = 1.0f / 60.0f;
 
 	while (bRunning && player.health != 0) {
-
-		if (GetAsyncKeyState(VK_ESCAPE) < 0)
-			bRunning = FALSE;
 
 		_Engine.msg_loop();
 		
 		// we keep track how much time has gone by between frames
 		// so that we know how much we have moved when the scene is rendered
-		new_time = chrono::system_clock::now();
-		chrono::duration<float> elapsed = new_time - old_time;
-		old_time = new_time;
-		float elapsed_time = elapsed.count();
-		game_time += elapsed_time;
+
+		end_time = chrono::system_clock::now();
+		chrono::duration<float> elapsedTime = end_time - start_time;
+		start_time = end_time;
+		float elapsed_time = elapsedTime.count();
+
+		/*if (elapsed_time < target_fps)
+		{
+			DWORD sleep_time = (DWORD)(target_fps * 1000 - elapsed_time * 1000);
+			Sleep(sleep_time);
+		}*/
 
 		if (start_game)
 		{
-			float rot_speed = 3.0f * elapsed_time;
+			if (GetAsyncKeyState(VK_ESCAPE) < 0)
+				bRunning = FALSE;
+
+			float rot_speed = 3.0f;
 
 			// clear screen
 			FillRectangle(0, 0, WIN_WIDTH, WIN_HEIGHT / 2, 0x222222);
@@ -358,22 +388,22 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 			{
 				// rotate the view direction and plane
 				float oldDirX = dir_X;
-				dir_X = dir_X * cosf(-rot_speed) - dir_Y * sinf(-rot_speed);
-				dir_Y = oldDirX * sinf(-rot_speed) + dir_Y * cosf(-rot_speed);
+				dir_X = dir_X * cosf(-rot_speed * elapsed_time) - dir_Y * sinf(-rot_speed * elapsed_time);
+				dir_Y = oldDirX * sinf(-rot_speed * elapsed_time) + dir_Y * cosf(-rot_speed * elapsed_time);
 				float oldPlaneX = plane_X;
-				plane_X = plane_X * cosf(-rot_speed) - plane_Y * sinf(-rot_speed);
-				plane_Y = oldPlaneX * sinf(-rot_speed) + plane_Y * cosf(-rot_speed);
+				plane_X = plane_X * cosf(-rot_speed * elapsed_time) - plane_Y * sinf(-rot_speed * elapsed_time);
+				plane_Y = oldPlaneX * sinf(-rot_speed * elapsed_time) + plane_Y * cosf(-rot_speed * elapsed_time);
 			}
 
 			if (GetAsyncKeyState(VK_A) < 0)
 			{
 				// god I love math
 				float oldDirX = dir_X;
-				dir_X = dir_X * cosf(rot_speed) - dir_Y * sinf(rot_speed);
-				dir_Y = oldDirX * sinf(rot_speed) + dir_Y * cosf(-rot_speed);
+				dir_X = dir_X * cosf(rot_speed * elapsed_time) - dir_Y * sinf(rot_speed * elapsed_time);
+				dir_Y = oldDirX * sinf(rot_speed * elapsed_time) + dir_Y * cosf(-rot_speed * elapsed_time);
 				float oldPlaneX = plane_X;
-				plane_X = plane_X * cosf(rot_speed) - plane_Y * sinf(rot_speed);
-				plane_Y = oldPlaneX * sinf(rot_speed) + plane_Y * cosf(rot_speed);
+				plane_X = plane_X * cosf(rot_speed * elapsed_time) - plane_Y * sinf(rot_speed * elapsed_time);
+				plane_Y = oldPlaneX * sinf(rot_speed * elapsed_time) + plane_Y * cosf(rot_speed * elapsed_time);
 			}
 
 			if (GetAsyncKeyState(VK_W) < 0)

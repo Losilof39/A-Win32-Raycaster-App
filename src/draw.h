@@ -1,14 +1,15 @@
 #pragma once
 #include <chrono>
 #include <vector>
+#include "main_def.h"
 
 // global backbuffer
 game_bitmap gbackbuffer;
 
 void Clear(uint32_t color);
 void Draw(int x, int y, uint32_t color);
-void FillRectangle(int x, int y, int client_width, int client_height, uint32_t color);
-void Blit32BMP(game_bitmap* bitmap, int x, int y);
+void FillRectangle(int x, int y, int width, int height, uint32_t color);
+void Blit32BMP(game_bitmap* bitmap, int x, int y, int scale);
 void DrawSprite(game_bitmap * bitmap, int x, int y, double distance, float scale) ;
 
 void Clear(uint32_t color) {
@@ -32,11 +33,11 @@ void Draw(int x, int y, uint32_t color) {
 	*pixel = color;
 }
 
-void FillRectangle(int x, int y, int client_width, int client_height, uint32_t color) {
+void FillRectangle(int x, int y, int width, int height, uint32_t color) {
 
-	for (int j = y; j < y + client_height; j++) {
+	for (int j = y; j < y + height; j++) {
 
-		for (int i = x; i < x + client_width; i++) {
+		for (int i = x; i < x + width; i++) {
 
 			Draw(i, j, color);
 
@@ -58,7 +59,10 @@ void Blit32BMP(game_bitmap* bitmap, int x, int y, float scale)
 			
 			memcpy_s(&bitmap_pixel, sizeof(uint32_t), (uint32_t*)bitmap->memory + bitmap_offset, sizeof(uint32_t));
 
-			Draw(x + pixel_x, y + pixel_y, bitmap_pixel);
+			if (bitmap_pixel != -6815608)
+			{
+				Draw(x + pixel_x, y + pixel_y, bitmap_pixel);
+			}
 		}
 	}
 }
