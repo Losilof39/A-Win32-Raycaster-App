@@ -21,6 +21,4 @@ TODO:
 
 ![image2](https://user-images.githubusercontent.com/70483950/134228755-e8ec171f-e11e-4945-8682-e3b5e4edb307.png)
 
-![image3](https://user-images.githubusercontent.com/70483950/134228756-fdaea370-185c-4933-a63a-91c520ba0ae1.png)
-
 # This is educational only.
